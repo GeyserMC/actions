@@ -28,8 +28,13 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
     for (const file of files) {
         const name = path.basename(file.path);
         const data = fs.createReadStream(file.path);
+        const size = fs.statSync(file.path).size;
 
         const fileResponse = await api.rest.repos.uploadReleaseAsset({
+            headers: {
+                'content-length': size,
+                'content-type': 'application/octet-stream',
+            },
             owner,
             repo,
             release_id: release.data.id,
@@ -96,8 +101,13 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
     // Now upload the release data as release.json
     const data = Buffer.from(JSON.stringify(releaseData, null, 4), 'utf8');
     const name = 'release.json';
+    const size = data.byteLength;
 
     const fileResponse = await api.rest.repos.uploadReleaseAsset({
+        headers: {
+            'content-length': size,
+            'content-type': 'application/octet-stream',
+        },
         owner,
         repo,
         release_id: release.data.id,

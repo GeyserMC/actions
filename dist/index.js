@@ -16013,7 +16013,12 @@ async function uploadProvidedFiles(api, inputs, release, repoData) {
     for (const file of files) {
         const name = path_1.default.basename(file.path);
         const data = fs_1.default.createReadStream(file.path);
+        const size = fs_1.default.statSync(file.path).size;
         const fileResponse = await api.rest.repos.uploadReleaseAsset({
+            headers: {
+                'content-length': size,
+                'content-type': 'application/octet-stream',
+            },
             owner,
             repo,
             release_id: release.data.id,
@@ -16069,7 +16074,12 @@ async function uploadReleaseData(api, inputs, release, repoData, uploads) {
     // Now upload the release data as release.json
     const data = Buffer.from(JSON.stringify(releaseData, null, 4), 'utf8');
     const name = 'release.json';
+    const size = data.byteLength;
     const fileResponse = await api.rest.repos.uploadReleaseAsset({
+        headers: {
+            'content-length': size,
+            'content-type': 'application/octet-stream',
+        },
         owner,
         repo,
         release_id: release.data.id,
