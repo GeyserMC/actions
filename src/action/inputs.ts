@@ -7,6 +7,7 @@ import { Repo } from 'src/types/repo';
 import os from 'os';
 import path from 'path';
 import { OctokitApi } from 'src/types/auth';
+import github from '@actions/github';
 
 export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs> {
     const files = getFiles();
@@ -90,8 +91,10 @@ async function getChanges(api: OctokitApi, repoData: Repo): Promise<Inputs.Chang
     try {
         const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
         commitRange = `${prevCommitVarResponse.data.value}..`;
+        console.log(`Using commit range ${commitRange}`);
     } catch (error) {
         commitRange = process.env.GITHUB_SHA!;
+        console.log(`No previous commit found, using ${commitRange}`);
     }
 
     let changelog = '';

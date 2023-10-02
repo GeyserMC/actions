@@ -16194,9 +16194,11 @@ async function getChanges(api, repoData) {
     try {
         const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
         commitRange = `${prevCommitVarResponse.data.value}..`;
+        console.log(`Using commit range ${commitRange}`);
     }
     catch (error) {
         commitRange = process.env.GITHUB_SHA;
+        console.log(`No previous commit found, using ${commitRange}`);
     }
     let changelog = '';
     let error = '';
