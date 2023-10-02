@@ -1,16 +1,16 @@
-import { Octokit } from '@octokit/action';
+import { OctokitApi } from 'src/types/auth';
 import { Inputs } from 'src/types/inputs';
 import { ReleaseResponse } from 'src/types/release';
 import { Repo } from 'src/types/repo';
 
-export async function writeRelease(inputs: Inputs, api: Octokit, repoData: Repo): Promise<ReleaseResponse> {
+export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse> {
     const { owner, repo, branch } = repoData;
 
     const tag_name = inputs.tag.prefix + inputs.tag.seperator + inputs.tag.base;
     const target_commitish = branch;
     const { name, body, draft, prerelease, discussion_category_name, generate_release_notes, make_latest } = inputs.release;
 
-    const releaseResponse = await api.repos.createRelease({ 
+    const releaseResponse = await api.rest.repos.createRelease({ 
         owner,
         repo,
         tag_name,

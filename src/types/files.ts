@@ -1,4 +1,4 @@
-import { RestEndpointMethodTypes } from "@octokit/action";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
 
 export type UploadResponse = RestEndpointMethodTypes["repos"]["uploadReleaseAsset"]["response"];
 

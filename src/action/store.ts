@@ -1,13 +1,13 @@
+import { OctokitApi } from 'src/types/auth';
 import * as parse from '../util/parse';
-import { Octokit } from "@octokit/action";
 import { Inputs } from "src/types/inputs";
 import { Repo } from "src/types/repo";
 
-export async function storeReleaseData(inputs: Inputs, api: Octokit, repoData: Repo) {
+export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo) {
     const { owner, repo, branch } = repoData;
     const commitVar = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
     
-    const curCommitVarResponse = await api.actions.updateRepoVariable({ 
+    const curCommitVarResponse = await api.rest.actions.updateRepoVariable({ 
         owner, 
         repo, 
         name: commitVar,
@@ -27,7 +27,7 @@ export async function storeReleaseData(inputs: Inputs, api: Octokit, repoData: R
     const buildNumberVar = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
     const buildNumber = inputs.tag.base;
 
-    const buildNumberVarResponse = await api.actions.updateRepoVariable({ 
+    const buildNumberVarResponse = await api.rest.actions.updateRepoVariable({ 
         owner, 
         repo, 
         name: buildNumberVar,

@@ -3,12 +3,12 @@ import fs from 'fs';
 import exec from '@actions/exec';
 import { Inputs } from 'src/types/inputs';
 import * as parse from '../util/parse';
-import { Octokit } from '@octokit/action';
 import { Repo } from 'src/types/repo';
 import os from 'os';
 import path from 'path';
+import { OctokitApi } from 'src/types/auth';
 
-export async function getInputs(api: Octokit, repoData: Repo): Promise<Inputs> {
+export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs> {
     const files = getFiles();
     const changes = await getChanges(api, repoData);
     const tag = await getTag(api, repoData);
@@ -33,7 +33,7 @@ function getFiles(): Inputs.File[] {
     });
 }
 
-async function getRelease(api: Octokit, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo): Promise<Inputs.Release> {
+async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo): Promise<Inputs.Release> {
     const { owner, repo, branch } = repoData;
 
     const body = await getReleaseBody(changes);
@@ -49,7 +49,7 @@ async function getRelease(api: Octokit, changes: Inputs.Change[], tag: Inputs.Ta
     return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info };
 }
 
-async function getTag(api: Octokit, repoData: Repo): Promise<Inputs.Tag> {
+async function getTag(api: OctokitApi, repoData: Repo): Promise<Inputs.Tag> {
     const { owner, repo, branch } = repoData;
 
     const base = core.getInput('tagBase');
@@ -59,14 +59,14 @@ async function getTag(api: Octokit, repoData: Repo): Promise<Inputs.Tag> {
 
     if (base === 'auto') {
         const variable = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
-        const varResponse = await api.actions.getRepoVariable({ owner, repo, name: variable });
+        const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
 
         if (varResponse.status === 200 && parse.isInteger(varResponse.data.value)) {
             const buildNumber = parseInt(varResponse.data.value) + (increment ? 1 : 0);
             return { base: buildNumber.toString(), prefix, seperator, increment, variable };
         }
 
-        const createVarResponse = await api.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
+        const createVarResponse = await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
 
         if (createVarResponse.status === 201) {
             return { base: '1', prefix, seperator, increment, variable };
@@ -84,11 +84,11 @@ async function getTag(api: Octokit, repoData: Repo): Promise<Inputs.Tag> {
     return { base, prefix, seperator, increment };
 }
 
-async function getChanges(api: Octokit, repoData: Repo): Promise<Inputs.Change[]> {
+async function getChanges(api: OctokitApi, repoData: Repo): Promise<Inputs.Change[]> {
     const { owner, repo, branch } = repoData;
 
     let commitRange = '';
-    const prevCommitVarResponse = await api.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
+    const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
 
     if (prevCommitVarResponse.status === 200) {
         commitRange = `${prevCommitVarResponse.data.value}..`;
@@ -145,13 +145,13 @@ async function getReleaseBody(changes: Inputs.Change[]): Promise<string> {
     return fs.readFileSync(bodyPath, { encoding: 'utf-8' });
 }
 
-async function getPreRelease(api: Octokit, repoData: Repo): Promise<boolean> {
+async function getPreRelease(api: OctokitApi, repoData: Repo): Promise<boolean> {
     const { owner, repo, branch } = repoData;
     
     const preRelease = core.getInput('preRelease');
 
     if (preRelease === 'auto') {
-        const repoResponse = await api.repos.get({ owner, repo });
+        const repoResponse = await api.rest.repos.get({ owner, repo });
 
         return repoResponse.data.default_branch !== branch;
     }
@@ -173,7 +173,7 @@ function getName(tag: Inputs.Tag, branch: string): string {
     return name;
 }
 
-async function getDiscussionCategory(_api: Octokit, _owner: string, _repo: string): Promise<string | undefined> {
+async function getDiscussionCategory(_api: OctokitApi, _owner: string, _repo: string): Promise<string | undefined> {
     const category = core.getInput('discussionCategory');
 
     // Currently the api to create one if it doesn't exist is not available

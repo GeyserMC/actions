@@ -1,15 +1,15 @@
 import * as core from '@actions/core'
-import { Octokit } from '@octokit/action';
 import { getInputs } from 'src/action/inputs';
 import { writeRelease } from 'src/action/release';
 import { getRepoData } from 'src/action/repo';
 import { storeReleaseData } from 'src/action/store';
 import { uploadFiles } from 'src/action/files';
+import { authGithubApp } from 'src/action/auth';
 
 async function run(): Promise<void> {
     try {
         const repoData = getRepoData();
-        const octokit = new Octokit();
+        const octokit = await authGithubApp();
 
         const inputs = await getInputs(octokit, repoData);
         const releaseResponse = await writeRelease(inputs, octokit, repoData);

@@ -53,8 +53,11 @@ inputs:
         description: 'The separator to use between the tag prefix and the tag base. Defaults to "-" if not specified.'
         required: false
         default: '-'
-    token:
-        description: 'The GitHub token to use to authenticate with the GitHub API'
+    appID:
+        description: 'ID of the GitHub App to manage the release system.'
+        required: true
+    appPrivateKey:
+        description: 'Private key of the GitHub App to manage the release system.'
         required: true
 
 outputs:

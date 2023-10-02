@@ -1,4 +1,3 @@
-import { Octokit } from "@octokit/action";
 import path from "path";
 import fs from "fs";
 import crypto from 'crypto';
@@ -8,8 +7,9 @@ import { ReleaseResponse } from "src/types/release";
 import { Repo } from "src/types/repo";
 import { UploadInfo } from "src/types/files";
 import { Readable } from "stream";
+import { OctokitApi } from "src/types/auth";
 
-export async function uploadFiles(api: Octokit, inputs: Inputs, release: ReleaseResponse, repoData: Repo) {
+export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo) {
     const uploads= await uploadProvidedFiles(api, inputs, release, repoData);
 
     if (!inputs.release.info) {
@@ -19,7 +19,7 @@ export async function uploadFiles(api: Octokit, inputs: Inputs, release: Release
     await uploadReleaseData(api, inputs, release, repoData, uploads);
 }
 
-async function uploadProvidedFiles(api: Octokit, inputs: Inputs, release: ReleaseResponse, repoData: Repo): Promise<Record<string, UploadInfo>> {
+async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo): Promise<Record<string, UploadInfo>> {
     const { owner, repo } = repoData;
     const { files } = inputs;
     const uploads: Record<string, UploadInfo> = {};
@@ -29,7 +29,7 @@ async function uploadProvidedFiles(api: Octokit, inputs: Inputs, release: Releas
         const name = path.basename(file.path);
         const data = fs.createReadStream(file.path);
 
-        const fileResponse = await api.repos.uploadReleaseAsset({
+        const fileResponse = await api.rest.repos.uploadReleaseAsset({
             owner,
             repo,
             release_id: release.data.id,
@@ -76,7 +76,7 @@ async function uploadProvidedFiles(api: Octokit, inputs: Inputs, release: Releas
     return uploads;
 }
 
-async function uploadReleaseData(api: Octokit, inputs: Inputs, release: ReleaseResponse, repoData: Repo, uploads: Record<string, UploadInfo>) {
+async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo, uploads: Record<string, UploadInfo>) {
     const { owner, repo, branch } = repoData;
 
     const releaseData = {
@@ -97,7 +97,7 @@ async function uploadReleaseData(api: Octokit, inputs: Inputs, release: ReleaseR
     const data = Buffer.from(JSON.stringify(releaseData, null, 4), 'utf8');
     const name = 'release.json';
 
-    const fileResponse = await api.repos.uploadReleaseAsset({
+    const fileResponse = await api.rest.repos.uploadReleaseAsset({
         owner,
         repo,
         release_id: release.data.id,
