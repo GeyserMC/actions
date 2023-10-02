@@ -1,0 +1,78 @@
+name: release-action
+description: "An action to create incremented releases in a similar style to Jenkins."
+
+inputs:
+    files:
+        description: 'Comma-separated or newline-separated list of release files with optional "label:" prefix.'
+        required: true
+    discussionCategory:
+        description: 'The category to use for the discussion. Defaults to "none" if not specified.'
+        required: false
+        default: 'none'
+    draftRelease:
+        description: 'Whether or not the release should be a draft. Defaults to false if not specified.'
+        required: false
+        default: 'false'
+    ghReleaseNotes:
+        description: 'Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.'
+        required: false
+        default: 'false'
+    includeReleaseInfo:
+        description: 'Whether or not to include the asset hashes in a release.json file. Defaults to true if not specified.'
+        required: false
+        default: 'true'
+    latestRelease:
+        description: 'Whether or not the release should be marked as the latest release. Defaults to auto if not specified, which will be true unless this is a pre-release.'
+        required: false
+        default: 'auto'
+    preRelease:
+        description: 'Whether or not the release is a pre-release. Inferred by the branch if not specified.'
+        required: false
+        default: 'auto'
+    releaseBody:
+        description: 'A file containing the body of the release. Defaults to the commit changelog if not specified.'
+        required: false
+        default: 'auto'
+    releaseName:
+        description: 'The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.'
+        required: false
+        default: 'auto'
+    tagBase: 
+        description: 'The tag base to use for the release. Auto increment from the last tag will be used if not specified.'
+        required: false
+        default: 'auto'
+    tagIncrement:
+        description: 'If the build tag should be incremented. Defaults to true if not specified and tag is a number.'
+        required: false
+        default: 'true'
+    tagPrefix:
+        description: 'The prefix to use for the tag. Defaults to the branch if not specified.'
+        required: false
+        default: 'auto'
+    tagSeparator:
+        description: 'The separator to use between the tag prefix and the tag base. Defaults to "-" if not specified.'
+        required: false
+        default: '-'
+    token:
+        description: 'The GitHub token to use to authenticate with the GitHub API'
+        required: true
+
+outputs:
+    releaseID:
+        description: 'The ID of the release'
+    releaseAPIURL:
+        description: 'The API URL of the release'
+    releaseAssetsURL:
+        description: 'The asset URL for the release'
+    releaseBrowserURL:
+        description: 'The browser URL of the release'
+    uploadAssetsURL:
+        description: 'The asset upload URL for the release'
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
+
+branding:
+    icon: "tag"
+    color: "gray-dark"
