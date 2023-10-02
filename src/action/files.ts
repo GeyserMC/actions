@@ -25,7 +25,7 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
     const uploads: Record<string, UploadInfo> = {};
     const duplicateLabels = files.map(f => f.label).some((label, index, self) => self.indexOf(label) !== index);
 
-    for (const file of files) {
+    next: for (const file of files) {
         const name = path.basename(file.path);
         const data = fs.createReadStream(file.path);
         const size = fs.statSync(file.path).size;
@@ -43,15 +43,8 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
             data: data as any,
         });
 
-        if (fileResponse.status !== 201) {
-            if (fileResponse.status === 422) {
-                throw new Error(`Failed to upload ${name} to ${release.data.html_url} because it already exists`);
-            }
-            throw new Error(`Failed to upload ${name} to ${release.data.html_url}`);
-        }
-
         if (!inputs.release.info) {
-            continue;
+            continue next;
         }
 
         const hashSha256 = (rs: fs.ReadStream) => new Promise<string>((resolve, reject) => {

@@ -16010,7 +16010,7 @@ async function uploadProvidedFiles(api, inputs, release, repoData) {
     const { files } = inputs;
     const uploads = {};
     const duplicateLabels = files.map(f => f.label).some((label, index, self) => self.indexOf(label) !== index);
-    for (const file of files) {
+    next: for (const file of files) {
         const name = path_1.default.basename(file.path);
         const data = fs_1.default.createReadStream(file.path);
         const size = fs_1.default.statSync(file.path).size;
@@ -16026,14 +16026,8 @@ async function uploadProvidedFiles(api, inputs, release, repoData) {
             name,
             data: data,
         });
-        if (fileResponse.status !== 201) {
-            if (fileResponse.status === 422) {
-                throw new Error(`Failed to upload ${name} to ${release.data.html_url} because it already exists`);
-            }
-            throw new Error(`Failed to upload ${name} to ${release.data.html_url}`);
-        }
         if (!inputs.release.info) {
-            continue;
+            continue next;
         }
         const hashSha256 = (rs) => new Promise((resolve, reject) => {
             const hash = crypto_1.default.createHash('sha256');
