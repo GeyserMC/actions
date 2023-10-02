@@ -16200,15 +16200,16 @@ async function getChanges(api, repoData) {
         commitRange = process.env.GITHUB_SHA;
         console.log(`No previous commit found, using ${commitRange}`);
     }
-    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct"', commitRange]);
+    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"', commitRange]);
     if (stderr !== '') {
         throw new Error('Could not get changes due to:' + stderr);
     }
     const changes = [];
-    for (const line of stdout.split(os_1.default.EOL)) {
-        const [commit, summary, message, timestamp] = line.split('\0');
+    for (const line of stdout.split('\0' + '"' + os_1.default.EOL)) {
+        const [commit, summary, message, timestamp] = line.substring(1).split('\0');
         changes.push({ commit, summary, message, timestamp });
     }
+    console.log('');
     console.log(`Found ${changes.length} changes in commit range ${commitRange}`);
     return changes;
 }
@@ -16218,7 +16219,7 @@ async function getReleaseBody(changes) {
         // Generate release body ourselves
         let changelog = `## Changes${os_1.default.EOL}`;
         for (const change of changes) {
-            changelog += `- ${change.summary} (${change.commit})${os_1.default.EOL}`;
+            changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os_1.default.EOL}`;
         }
         return changelog;
     }
