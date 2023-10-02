@@ -16191,12 +16191,14 @@ async function getTag(api, repoData) {
 async function getChanges(api, repoData) {
     const { owner, repo, branch } = repoData;
     let commitRange = '';
+    const variable = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
     try {
-        const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
+        const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
         commitRange = `${prevCommitVarResponse.data.value}..`;
         console.log(`Using commit range ${commitRange}`);
     }
     catch (error) {
+        await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: process.env.GITHUB_SHA });
         commitRange = process.env.GITHUB_SHA;
         console.log(`No previous commit found, using ${commitRange}`);
     }
