@@ -15926,15 +15926,20 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.authGithubApp = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const auth_app_1 = __nccwpck_require__(7541);
 const core_1 = __nccwpck_require__(6762);
 const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
 async function authGithubApp() {
     const appId = core.getInput('appID', { required: true });
-    const privateKey = core.getInput('appPrivateKey', { required: true });
+    const appPrivateKey = core.getInput('appPrivateKey', { required: true });
+    const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export().toString();
     const app = (0, auth_app_1.createAppAuth)({
         appId: parseInt(appId),
         privateKey
