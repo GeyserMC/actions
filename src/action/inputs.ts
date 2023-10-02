@@ -53,7 +53,7 @@ async function getTag(api: OctokitApi, repoData: Repo): Promise<Inputs.Tag> {
     const { owner, repo, branch } = repoData;
 
     const base = core.getInput('tagBase');
-    const seperator = core.getInput('tagSeperator');
+    const separator = core.getInput('tagSeparator');
     const prefix = core.getInput('tagPrefix') == 'auto' ? branch : core.getInput('tagPrefix');
     const increment = core.getBooleanInput('tagIncrement');
 
@@ -65,21 +65,21 @@ async function getTag(api: OctokitApi, repoData: Repo): Promise<Inputs.Tag> {
 
             if (varResponse.status === 200 && parse.isInteger(varResponse.data.value)) {
                 const buildNumber = parseInt(varResponse.data.value) + (increment ? 1 : 0);
-                return { base: buildNumber.toString(), prefix, seperator, increment, variable };
+                return { base: buildNumber.toString(), prefix, separator, increment, variable };
             }
         } catch (error) {
             await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
-            return { base: '1', prefix, seperator, increment, variable };
+            return { base: '1', prefix, separator, increment, variable };
         }
     }
 
     if (parse.isInteger(base) && increment) {
         const buildNumber = parseInt(base) + 1;
-        return { base: buildNumber.toString(), prefix, seperator, increment };
+        return { base: buildNumber.toString(), prefix, separator, increment };
     }
 
-    console.log(`Using release tag ${prefix}${seperator}${base} with increment: ${increment}`);
-    return { base, prefix, seperator, increment };
+    console.log(`Using release tag ${prefix}${separator}${base} with increment: ${increment}`);
+    return { base, prefix, separator, increment };
 }
 
 async function getChanges(api: OctokitApi, repoData: Repo): Promise<Inputs.Change[]> {
@@ -152,7 +152,7 @@ function getName(tag: Inputs.Tag, branch: string): string {
     const name = core.getInput('releaseName')
         .replace('${tagBase}', tag.base)
         .replace('${tagPrefix}', tag.prefix)
-        .replace('${tagSeperator}', tag.seperator)
+        .replace('${tagSeparator}', tag.separator)
         .replace('${branch}', branch);
 
     if (name === 'auto') {

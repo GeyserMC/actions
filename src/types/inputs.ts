@@ -10,7 +10,7 @@ export namespace Inputs {
         readonly base: string;
         readonly prefix: string;
         readonly increment: boolean;
-        readonly seperator: string;
+        readonly separator: string;
         readonly variable?: string;
     }
 

@@ -6,7 +6,7 @@ import { Repo } from 'src/types/repo';
 export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse> {
     const { owner, repo, branch } = repoData;
 
-    const tag_name = inputs.tag.prefix + inputs.tag.seperator + inputs.tag.base;
+    const tag_name = inputs.tag.prefix + inputs.tag.separator + inputs.tag.base;
     const target_commitish = branch;
     const { name, body, draft, prerelease, discussion_category_name, generate_release_notes, make_latest } = inputs.release;
 
