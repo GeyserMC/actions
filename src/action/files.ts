@@ -110,12 +110,5 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
         data: Readable.from(data) as any,
     });
 
-    if (fileResponse.status !== 201) {
-        if (fileResponse.status === 422) {
-            throw new Error(`Failed to upload ${name} to ${release.data.html_url} because it already exists`);
-        }
-        throw new Error(`Failed to upload ${name} to ${release.data.html_url}`);
-    }
-
     console.log(`Uploaded release data to ${release.data.html_url}`);
 }

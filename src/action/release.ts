@@ -24,18 +24,6 @@ export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Re
         make_latest
     });
 
-    if (releaseResponse.status === 201) {
-        console.log(`Release ${releaseResponse.data.id} created at ${releaseResponse.data.html_url}`);
-        return releaseResponse;
-    }
-
-    if (releaseResponse.status === 404) {
-        throw new Error(`Specified discussion category ${discussion_category_name} does not exist`);
-    }
-
-    if (releaseResponse.status === 422) {
-        throw new Error(`Release ${tag_name} already exists`);
-    }
-
-    throw new Error(`Failed to create release for tag ${tag_name}`);
+    console.log(`Release ${releaseResponse.data.id} created at ${releaseResponse.data.html_url}`);
+    return releaseResponse;
 }

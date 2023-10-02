@@ -14,10 +14,6 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
         value: process.env.GITHUB_SHA!
     });
 
-    if (curCommitVarResponse.status !== 204) {
-        throw new Error(`Failed to update variable ${commitVar} to ${process.env.GITHUB_SHA!}`);
-    }
-
     console.log(`Updated variable ${commitVar} to ${process.env.GITHUB_SHA!}`);
 
     if (!inputs.tag.increment) {
@@ -33,10 +29,6 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
         name: buildNumberVar,
         value: buildNumber
     });
-
-    if (buildNumberVarResponse.status !== 204) {
-        throw new Error(`Failed to update variable ${buildNumberVar} to ${buildNumber}`);
-    }
 
     console.log(`Updated variable ${buildNumberVar} to ${buildNumber}`);
 }
