@@ -1,4 +1,4 @@
-name: release-action
+name: base-release-action
 description: "An action to create incremented releases in a similar style to Jenkins."
 
 inputs:
