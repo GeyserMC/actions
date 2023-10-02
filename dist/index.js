@@ -16070,7 +16070,7 @@ async function uploadReleaseData(api, inputs, release, repoData, uploads) {
     const data = Buffer.from(JSON.stringify(releaseData, null, 4), 'utf8');
     const name = 'release.json';
     const size = data.byteLength;
-    const fileResponse = await api.rest.repos.uploadReleaseAsset({
+    await api.rest.repos.uploadReleaseAsset({
         headers: {
             'content-length': size,
             'content-type': 'application/octet-stream',
@@ -16082,12 +16082,6 @@ async function uploadReleaseData(api, inputs, release, repoData, uploads) {
         name,
         data: stream_1.Readable.from(data),
     });
-    if (fileResponse.status !== 201) {
-        if (fileResponse.status === 422) {
-            throw new Error(`Failed to upload ${name} to ${release.data.html_url} because it already exists`);
-        }
-        throw new Error(`Failed to upload ${name} to ${release.data.html_url}`);
-    }
     console.log(`Uploaded release data to ${release.data.html_url}`);
 }
 
@@ -16304,17 +16298,8 @@ async function writeRelease(inputs, api, repoData) {
         generate_release_notes,
         make_latest
     });
-    if (releaseResponse.status === 201) {
-        console.log(`Release ${releaseResponse.data.id} created at ${releaseResponse.data.html_url}`);
-        return releaseResponse;
-    }
-    if (releaseResponse.status === 404) {
-        throw new Error(`Specified discussion category ${discussion_category_name} does not exist`);
-    }
-    if (releaseResponse.status === 422) {
-        throw new Error(`Release ${tag_name} already exists`);
-    }
-    throw new Error(`Failed to create release for tag ${tag_name}`);
+    console.log(`Release ${releaseResponse.data.id} created at ${releaseResponse.data.html_url}`);
+    return releaseResponse;
 }
 exports.writeRelease = writeRelease;
 
@@ -16403,30 +16388,24 @@ const parse = __importStar(__nccwpck_require__(2742));
 async function storeReleaseData(inputs, api, repoData) {
     const { owner, repo, branch } = repoData;
     const commitVar = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
-    const curCommitVarResponse = await api.rest.actions.updateRepoVariable({
+    await api.rest.actions.updateRepoVariable({
         owner,
         repo,
         name: commitVar,
         value: process.env.GITHUB_SHA
     });
-    if (curCommitVarResponse.status !== 204) {
-        throw new Error(`Failed to update variable ${commitVar} to ${process.env.GITHUB_SHA}`);
-    }
     console.log(`Updated variable ${commitVar} to ${process.env.GITHUB_SHA}`);
     if (!inputs.tag.increment) {
         return;
     }
     const buildNumberVar = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
     const buildNumber = inputs.tag.base;
-    const buildNumberVarResponse = await api.rest.actions.updateRepoVariable({
+    await api.rest.actions.updateRepoVariable({
         owner,
         repo,
         name: buildNumberVar,
         value: buildNumber
     });
-    if (buildNumberVarResponse.status !== 204) {
-        throw new Error(`Failed to update variable ${buildNumberVar} to ${buildNumber}`);
-    }
     console.log(`Updated variable ${buildNumberVar} to ${buildNumber}`);
 }
 exports.storeReleaseData = storeReleaseData;

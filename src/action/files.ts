@@ -97,7 +97,7 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
     const name = 'release.json';
     const size = data.byteLength;
 
-    const fileResponse = await api.rest.repos.uploadReleaseAsset({
+    await api.rest.repos.uploadReleaseAsset({
         headers: {
             'content-length': size,
             'content-type': 'application/octet-stream',

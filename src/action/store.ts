@@ -7,7 +7,7 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
     const { owner, repo, branch } = repoData;
     const commitVar = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
     
-    const curCommitVarResponse = await api.rest.actions.updateRepoVariable({ 
+    await api.rest.actions.updateRepoVariable({ 
         owner, 
         repo, 
         name: commitVar,
@@ -23,7 +23,7 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
     const buildNumberVar = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
     const buildNumber = inputs.tag.base;
 
-    const buildNumberVarResponse = await api.rest.actions.updateRepoVariable({ 
+    await api.rest.actions.updateRepoVariable({ 
         owner, 
         repo, 
         name: buildNumberVar,
