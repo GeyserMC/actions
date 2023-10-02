@@ -16169,17 +16169,16 @@ async function getTag(api, repoData) {
     const increment = core.getBooleanInput('tagIncrement');
     if (base === 'auto') {
         const variable = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
-        const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
-        if (varResponse.status === 200 && parse.isInteger(varResponse.data.value)) {
-            const buildNumber = parseInt(varResponse.data.value) + (increment ? 1 : 0);
-            return { base: buildNumber.toString(), prefix, seperator, increment, variable };
+        try {
+            const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+            if (varResponse.status === 200 && parse.isInteger(varResponse.data.value)) {
+                const buildNumber = parseInt(varResponse.data.value) + (increment ? 1 : 0);
+                return { base: buildNumber.toString(), prefix, seperator, increment, variable };
+            }
         }
-        const createVarResponse = await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
-        if (createVarResponse.status === 201) {
+        catch (error) {
+            await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
             return { base: '1', prefix, seperator, increment, variable };
-        }
-        else {
-            throw new Error(`Failed to create variable ${variable}`);
         }
     }
     if (parse.isInteger(base) && increment) {
@@ -16192,11 +16191,11 @@ async function getTag(api, repoData) {
 async function getChanges(api, repoData) {
     const { owner, repo, branch } = repoData;
     let commitRange = '';
-    const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
-    if (prevCommitVarResponse.status === 200) {
+    try {
+        const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit` });
         commitRange = `${prevCommitVarResponse.data.value}..`;
     }
-    else {
+    catch (error) {
         commitRange = process.env.GITHUB_SHA;
     }
     let changelog = '';
