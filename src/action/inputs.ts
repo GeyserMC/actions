@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import fs from 'fs';
-import exec from '@actions/exec';
+import * as exec from '@actions/exec';
 import { Inputs } from 'src/types/inputs';
 import * as parse from '../util/parse';
 import { Repo } from 'src/types/repo';
@@ -97,29 +97,15 @@ async function getChanges(api: OctokitApi, repoData: Repo): Promise<Inputs.Chang
         console.log(`No previous commit found, using ${commitRange}`);
     }
 
-    let changelog = '';
-    let error = '';
+    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct"', commitRange]);
 
-    const options = {
-        listeners: {
-            stdout: (data: Buffer) => {
-                changelog += data.toString();
-            },
-            stderr: (data: Buffer) => {
-                error += data.toString();
-            }
-        }
-    };
-
-    await exec.exec('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct"', commitRange], options);
-
-    if (error !== '') {
-        throw new Error('Could not get changes due to:' + error);
+    if (stderr !== '') {
+        throw new Error('Could not get changes due to:' + stderr);
     }
 
     const changes: Inputs.Change[] = [];
 
-    for (const line of changelog.split(os.EOL)) {
+    for (const line of stdout.split(os.EOL)) {
         const [commit, summary, message, timestamp] = line.split('\0');
 
         changes.push({ commit, summary, message, timestamp });

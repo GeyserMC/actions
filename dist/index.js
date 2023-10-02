@@ -16124,7 +16124,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
-const exec_1 = __importDefault(__nccwpck_require__(1514));
+const exec = __importStar(__nccwpck_require__(1514));
 const parse = __importStar(__nccwpck_require__(2742));
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
@@ -16200,24 +16200,12 @@ async function getChanges(api, repoData) {
         commitRange = process.env.GITHUB_SHA;
         console.log(`No previous commit found, using ${commitRange}`);
     }
-    let changelog = '';
-    let error = '';
-    const options = {
-        listeners: {
-            stdout: (data) => {
-                changelog += data.toString();
-            },
-            stderr: (data) => {
-                error += data.toString();
-            }
-        }
-    };
-    await exec_1.default.exec('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct"', commitRange], options);
-    if (error !== '') {
-        throw new Error('Could not get changes due to:' + error);
+    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct"', commitRange]);
+    if (stderr !== '') {
+        throw new Error('Could not get changes due to:' + stderr);
     }
     const changes = [];
-    for (const line of changelog.split(os_1.default.EOL)) {
+    for (const line of stdout.split(os_1.default.EOL)) {
         const [commit, summary, message, timestamp] = line.split('\0');
         changes.push({ commit, summary, message, timestamp });
     }
