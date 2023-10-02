@@ -1,7 +1,7 @@
-import { OctokitApi } from 'src/types/auth';
-import { Inputs } from 'src/types/inputs';
-import { ReleaseResponse } from 'src/types/release';
-import { Repo } from 'src/types/repo';
+import { OctokitApi } from '../types/auth';
+import { Inputs } from '../types/inputs';
+import { ReleaseResponse } from '../types/release';
+import { Repo } from '../types/repo';
 
 export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse> {
     const { owner, repo, branch } = repoData;

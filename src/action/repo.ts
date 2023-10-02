@@ -1,5 +1,5 @@
-import { Repo } from "src/types/repo";
-import * as parse from 'src/util/parse';
+import { Repo } from "../types/repo";
+import * as parse from '../util/parse';
 
 export function getRepoData(): Repo {
     if(!process.env.GITHUB_REPOSITORY) {

@@ -1,12 +1,12 @@
 import * as core from '@actions/core'
 import fs from 'fs';
 import * as exec from '@actions/exec';
-import { Inputs } from 'src/types/inputs';
+import { Inputs } from '../types/inputs';
 import * as parse from '../util/parse';
-import { Repo } from 'src/types/repo';
+import { Repo } from '../types/repo';
 import os from 'os';
 import path from 'path';
-import { OctokitApi } from 'src/types/auth';
+import { OctokitApi } from '../types/auth';
 
 export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs> {
     const files = getFiles();

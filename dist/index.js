@@ -16029,13 +16029,14 @@ async function uploadProvidedFiles(api, inputs, release, repoData) {
         if (!inputs.release.info) {
             continue next;
         }
-        const hashSha256 = (rs) => new Promise((resolve, reject) => {
+        const hashSha256 = (filePath) => new Promise((resolve, reject) => {
             const hash = crypto_1.default.createHash('sha256');
+            const rs = fs_1.default.createReadStream(filePath);
             rs.on('error', reject);
             rs.on('data', chunk => hash.update(chunk));
             rs.on('end', () => resolve(hash.digest('hex')));
         });
-        const sha256 = await hashSha256(data);
+        const sha256 = await hashSha256(file.path);
         const info = {
             name,
             id: fileResponse.data.id.toString(),

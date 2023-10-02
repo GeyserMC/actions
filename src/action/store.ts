@@ -1,7 +1,7 @@
-import { OctokitApi } from 'src/types/auth';
+import { OctokitApi } from '../types/auth';
 import * as parse from '../util/parse';
-import { Inputs } from "src/types/inputs";
-import { Repo } from "src/types/repo";
+import { Inputs } from "../types/inputs";
+import { Repo } from "../types/repo";
 
 export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo) {
     const { owner, repo, branch } = repoData;

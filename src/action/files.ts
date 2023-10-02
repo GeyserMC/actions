@@ -1,13 +1,13 @@
 import path from "path";
 import fs from "fs";
 import crypto from 'crypto';
-import * as parse from "src/util/parse";
-import { Inputs } from "src/types/inputs";
+import * as parse from "../util/parse";
+import { Inputs } from "../types/inputs";
 import { ReleaseResponse } from "src/types/release";
 import { Repo } from "src/types/repo";
-import { UploadInfo } from "src/types/files";
+import { UploadInfo } from "../types/files";
 import { Readable } from "stream";
-import { OctokitApi } from "src/types/auth";
+import { OctokitApi } from "../types/auth";
 
 export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo) {
     const uploads= await uploadProvidedFiles(api, inputs, release, repoData);
@@ -47,14 +47,15 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
             continue next;
         }
 
-        const hashSha256 = (rs: fs.ReadStream) => new Promise<string>((resolve, reject) => {
+        const hashSha256 = (filePath: string) => new Promise<string>((resolve, reject) => {
             const hash = crypto.createHash('sha256')
+            const rs = fs.createReadStream(filePath);
             rs.on('error', reject)
             rs.on('data', chunk => hash.update(chunk))
             rs.on('end', () => resolve(hash.digest('hex')))
         })
 
-        const sha256 = await hashSha256(data);
+        const sha256 = await hashSha256(file.path);
 
         const info: UploadInfo = {
             name,

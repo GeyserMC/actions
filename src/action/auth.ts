@@ -3,8 +3,8 @@ import crypto from 'crypto';
 import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/core';
 import { restEndpointMethods } from '@octokit/plugin-rest-endpoint-methods';
-import { OctokitApi } from 'src/types/auth';
-import { Repo } from 'src/types/repo';
+import { OctokitApi } from '../types/auth';
+import { Repo } from '../types/repo';
 
 export async function authGithubApp(repoData: Repo): Promise<OctokitApi> {
     const { owner, repo } = repoData;
