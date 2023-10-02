@@ -9,7 +9,7 @@ import { authGithubApp } from 'src/action/auth';
 async function run(): Promise<void> {
     try {
         const repoData = getRepoData();
-        const octokit = await authGithubApp();
+        const octokit = await authGithubApp(repoData);
 
         const inputs = await getInputs(octokit, repoData);
         const releaseResponse = await writeRelease(inputs, octokit, repoData);

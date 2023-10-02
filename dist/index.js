@@ -15877,7 +15877,7 @@ const auth_1 = __nccwpck_require__(2912);
 async function run() {
     try {
         const repoData = (0, repo_1.getRepoData)();
-        const octokit = await (0, auth_1.authGithubApp)();
+        const octokit = await (0, auth_1.authGithubApp)(repoData);
         const inputs = await (0, inputs_1.getInputs)(octokit, repoData);
         const releaseResponse = await (0, release_1.writeRelease)(inputs, octokit, repoData);
         await (0, store_1.storeReleaseData)(inputs, octokit, repoData);
@@ -15936,17 +15936,21 @@ const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const auth_app_1 = __nccwpck_require__(7541);
 const core_1 = __nccwpck_require__(6762);
 const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
-async function authGithubApp() {
+async function authGithubApp(repoData) {
+    const { owner, repo } = repoData;
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
-    const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export().toString();
+    const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export({ type: 'pkcs8', format: 'pem' }).toString();
     const app = (0, auth_app_1.createAppAuth)({
         appId: parseInt(appId),
         privateKey
     });
     const auth = await app({ type: 'app' });
     const RestOctokit = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods);
-    const octokit = new RestOctokit({ auth: auth.token });
+    const appOctokit = new RestOctokit({ auth: auth.token });
+    const installationID = await appOctokit.rest.apps.getRepoInstallation({ owner, repo }).then(response => response.data.id);
+    const token = await appOctokit.rest.apps.createInstallationAccessToken({ installation_id: installationID }).then(response => response.data.token);
+    const octokit = new RestOctokit({ auth: token });
     console.log(`Successfully authenticated as GitHub app`);
     return octokit;
 }
