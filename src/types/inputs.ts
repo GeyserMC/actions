@@ -11,7 +11,6 @@ export namespace Inputs {
         readonly prefix: string;
         readonly increment: boolean;
         readonly separator: string;
-        readonly variable?: string;
     }
 
     export interface File {
@@ -36,4 +35,9 @@ export namespace Inputs {
         readonly make_latest: "true" | "false" | "legacy" | undefined;
         readonly info: boolean;
     }
+}
+
+export interface PreviousRelease { 
+    commit?: string;
+    baseTag?: string;
 }

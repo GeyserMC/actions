@@ -1,34 +1,47 @@
 import { OctokitApi } from '../types/auth';
-import * as parse from '../util/parse';
+import core from '@actions/core';
 import { Inputs } from "../types/inputs";
 import { Repo } from "../types/repo";
+import { isDeepStrictEqual } from 'util';
 
 export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo) {
-    const { owner, repo, branch } = repoData;
-    const commitVar = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
-    
-    await api.rest.actions.updateRepoVariable({ 
-        owner, 
-        repo, 
-        name: commitVar,
-        value: process.env.GITHUB_SHA!
-    });
+    let updated = await checkStoreReleaseData(inputs, api, repoData);
 
-    console.log(`Updated variable ${commitVar} to ${process.env.GITHUB_SHA!}`);
+    let retries = 0;
+    while (!updated && retries < 10) {
+        console.log(`Previous release data not updated, retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        updated = await checkStoreReleaseData(inputs, api, repoData);
+        retries++;
 
-    if (!inputs.tag.increment) {
-        return;
+        if (retries === 10) {
+            core.setFailed(`Previous release data not updated after 10 retries`);
+        }
     }
 
-    const buildNumberVar = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
-    const buildNumber = inputs.tag.base;
+
+    console.log(`Updated previous commit ${process.env.GITHUB_SHA!}`);
+    console.log(`Updated previous base tag to ${inputs.tag.base}`);
+}
+
+async function checkStoreReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<boolean> {
+    const { owner, repo, branch } = repoData;
+    const newEntry = { c: process.env.GITHUB_SHA!, t: inputs.tag.base };
+
+    const variable = 'releaseAction_prevRelease';
+    const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+    const value: Record<string, { c: string, t: string }> = JSON.parse(varResponse.data.value);
+
+    value[branch] = newEntry;
 
     await api.rest.actions.updateRepoVariable({ 
         owner, 
         repo, 
-        name: buildNumberVar,
-        value: buildNumber
+        name: variable,
+        value: JSON.stringify(value)
     });
 
-    console.log(`Updated variable ${buildNumberVar} to ${buildNumber}`);
+    const updatedVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+    const updatedValue: Record<string, { c: string, t: string }> = JSON.parse(updatedVarResponse.data.value);
+    return isDeepStrictEqual(value, updatedValue);
 }

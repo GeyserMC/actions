@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { isDeepStrictEqual } from 'util';
 
 export function parseMultiInput(input: string): string[] {
     let result: string[];
