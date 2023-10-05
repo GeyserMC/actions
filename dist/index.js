@@ -15002,7 +15002,7 @@ async function getChanges(api, prevRelease, repoData) {
         const message = c.commit.message;
         const timestamp = c.commit.committer && c.commit.committer.date ? new Date(c.commit.committer.date).getTime().toString() : '';
         const author = c.author ? c.author.login : '';
-        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1')) ?? [];
+        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1')).filter(coauthor => coauthor !== '') ?? [];
         changes.push({ commit, summary, message, timestamp, author, coauthors });
     }
     console.log('');
@@ -15025,7 +15025,19 @@ async function getReleaseBody(repoData, changes) {
             changes.length = Math.min(changes.length, parseInt(changeLimit));
         }
         for (const change of changes) {
-            const authors = [change.author, ...change.coauthors].filter(author => author !== '').map(author => `@${author}`).join(', ');
+            let authors = '';
+            switch (change.coauthors.length) {
+                case 0:
+                    authors = `@${change.author}`;
+                    break;
+                case 1:
+                    authors = `@${change.author} & @${change.coauthors[0]}`;
+                    break;
+                default:
+                    const allAuthors = [change.author, ...change.coauthors].map(author => `@${author}`);
+                    authors = `${allAuthors.slice(0, allAuthors.length - 1).join(', ')} & ${allAuthors[allAuthors.length - 1]}`;
+                    break;
+            }
             changelog += `- ${change.summary} (${change.commit.slice(0, 7)}) by ${authors}${os_1.default.EOL}`;
         }
         if (truncatedChanges > 0) {
