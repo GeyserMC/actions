@@ -16168,7 +16168,7 @@ function getFiles() {
 }
 async function getRelease(api, changes, tag, repoData) {
     const { owner, repo, branch } = repoData;
-    const body = await getReleaseBody(changes);
+    const body = await getReleaseBody(repoData, changes);
     const prerelease = await getPreRelease(repoData);
     const name = getName(tag, branch);
     const draft = core.getBooleanInput('draftRelease');
@@ -16234,18 +16234,29 @@ async function getChanges(api, prevRelease, repoData) {
     console.log(`Found ${changes.length} changes in commit range ${commitRange}`);
     return changes;
 }
-async function getReleaseBody(changes) {
+async function getReleaseBody(repoData, changes) {
     const bodyPath = core.getInput('releaseBodyPath');
     if (!fs_1.default.existsSync(bodyPath)) {
         // Generate release body ourselves
+        const { owner, repo } = repoData;
         let changelog = `## Changes${os_1.default.EOL}`;
+        const firstCommit = changes[changes.length - 1].commit.slice(0, 7);
+        const lastCommit = changes[0].commit.slice(0, 7);
         const changeLimit = core.getInput('releaseChangeLimit');
+        let truncatedChanges = 0;
         if (parse.isPosInteger(changeLimit)) {
+            truncatedChanges = changes.length - parseInt(changeLimit);
             changes.length = Math.min(changes.length, parseInt(changeLimit));
         }
         for (const change of changes) {
             changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os_1.default.EOL}`;
         }
+        if (truncatedChanges > 0) {
+            changelog += `... and ${truncatedChanges} more${os_1.default.EOL}`;
+        }
+        changelog += os_1.default.EOL;
+        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
+        changelog += `### Compare: ([\`${firstCommit}...${lastCommit}\`](${diffURL}))${os_1.default.EOL}`;
         return changelog;
     }
     return fs_1.default.readFileSync(bodyPath, { encoding: 'utf-8' });

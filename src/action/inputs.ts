@@ -59,7 +59,7 @@ function getFiles(): Inputs.File[] {
 async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo): Promise<Inputs.Release> {
     const { owner, repo, branch } = repoData;
 
-    const body = await getReleaseBody(changes);
+    const body = await getReleaseBody(repoData, changes);
     const prerelease = await getPreRelease(repoData);
     const name = getName(tag, branch);
     const draft = core.getBooleanInput('draftRelease');
@@ -139,21 +139,35 @@ async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoDat
     return changes;
 }
 
-async function getReleaseBody(changes: Inputs.Change[]): Promise<string> {
+async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise<string> {
     const bodyPath = core.getInput('releaseBodyPath');
 
     if (!fs.existsSync(bodyPath)) {
         // Generate release body ourselves
+        const { owner, repo } = repoData;
         let changelog = `## Changes${os.EOL}`;
 
+        const firstCommit = changes[changes.length - 1].commit.slice(0, 7);
+        const lastCommit = changes[0].commit.slice(0, 7);
+
         const changeLimit = core.getInput('releaseChangeLimit');
+        let truncatedChanges = 0;
         if (parse.isPosInteger(changeLimit)) {
+            truncatedChanges = changes.length - parseInt(changeLimit); 
             changes.length = Math.min(changes.length, parseInt(changeLimit));
         }
 
         for (const change of changes) {
             changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os.EOL}`;
         }
+
+        if (truncatedChanges > 0) {
+            changelog += `... and ${truncatedChanges} more${os.EOL}`;
+        }
+
+        changelog += os.EOL;
+        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
+        changelog += `### Compare: ([\`${firstCommit}...${lastCommit}\`](${diffURL}))${os.EOL}`;
 
         return changelog;
     }
