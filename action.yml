@@ -33,6 +33,10 @@ inputs:
         description: 'A file containing the body of the release. Defaults to the commit changelog if not specified.'
         required: false
         default: 'auto'
+    releaseChangeLimit:
+        description: 'The maximum number of changes to include in the release body. Defaults to 30 if not specified. Set to -1 to include all changes.'
+        required: false
+        default: '30'
     releaseName:
         description: 'The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.'
         required: false

@@ -15876,8 +15876,8 @@ const files_1 = __nccwpck_require__(2159);
 const auth_1 = __nccwpck_require__(2912);
 async function run() {
     try {
-        const repoData = (0, repo_1.getRepoData)();
-        const octokit = await (0, auth_1.authGithubApp)(repoData);
+        const baseRepoData = (0, repo_1.getRepoData)();
+        const { octokit, repoData } = await (0, auth_1.authGithubApp)(baseRepoData);
         const inputs = await (0, inputs_1.getInputs)(octokit, repoData);
         const releaseResponse = await (0, release_1.writeRelease)(inputs, octokit, repoData);
         await (0, store_1.storeReleaseData)(inputs, octokit, repoData);
@@ -15936,8 +15936,8 @@ const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const auth_app_1 = __nccwpck_require__(7541);
 const core_1 = __nccwpck_require__(6762);
 const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
-async function authGithubApp(repoData) {
-    const { owner, repo } = repoData;
+async function authGithubApp(baseRepoData) {
+    const { owner, repo, branch } = baseRepoData;
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
     const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export({ type: 'pkcs8', format: 'pem' }).toString();
@@ -15951,8 +15951,9 @@ async function authGithubApp(repoData) {
     const installationID = await appOctokit.rest.apps.getRepoInstallation({ owner, repo }).then(response => response.data.id);
     const token = await appOctokit.rest.apps.createInstallationAccessToken({ installation_id: installationID }).then(response => response.data.token);
     const octokit = new RestOctokit({ auth: token });
+    const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
     console.log(`Successfully authenticated as GitHub app`);
-    return octokit;
+    return { octokit, repoData: { owner, repo, branch, defaultBranch } };
 }
 exports.authGithubApp = authGithubApp;
 
@@ -16059,7 +16060,7 @@ async function uploadReleaseData(api, inputs, release, repoData, uploads) {
         branch,
         id: release.data.id.toString(),
         url: release.data.html_url,
-        build: parse.isInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
+        build: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
         tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
         timestamp: Date.now().toString(),
         prerelease: inputs.release.prerelease,
@@ -16130,7 +16131,7 @@ const path_1 = __importDefault(__nccwpck_require__(1017));
 async function getInputs(api, repoData) {
     const prevRelease = await getPrevRelease(api, repoData);
     const files = getFiles();
-    const changes = await getChanges(api, prevRelease);
+    const changes = await getChanges(api, prevRelease, repoData);
     const tag = await getTag(repoData, prevRelease);
     const release = await getRelease(api, changes, tag, repoData);
     console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
@@ -16168,7 +16169,7 @@ function getFiles() {
 async function getRelease(api, changes, tag, repoData) {
     const { owner, repo, branch } = repoData;
     const body = await getReleaseBody(changes);
-    const prerelease = await getPreRelease(api, repoData);
+    const prerelease = await getPreRelease(repoData);
     const name = getName(tag, branch);
     const draft = core.getBooleanInput('draftRelease');
     const generate_release_notes = core.getBooleanInput('ghReleaseNotes');
@@ -16185,7 +16186,7 @@ async function getTag(repoData, prevRelease) {
     const prefix = core.getInput('tagPrefix') == 'auto' ? branch : core.getInput('tagPrefix');
     const increment = core.getBooleanInput('tagIncrement');
     if (base === 'auto') {
-        if (prevRelease.baseTag != null && parse.isInteger(prevRelease.baseTag)) {
+        if (prevRelease.baseTag != null && parse.isPosInteger(prevRelease.baseTag)) {
             const buildNumber = parseInt(prevRelease.baseTag) + (increment ? 1 : 0);
             return { base: buildNumber.toString(), prefix, separator, increment };
         }
@@ -16193,22 +16194,34 @@ async function getTag(repoData, prevRelease) {
             return { base: '1', prefix, separator, increment };
         }
     }
-    if (parse.isInteger(base) && increment) {
+    if (parse.isPosInteger(base) && increment) {
         const buildNumber = parseInt(base) + 1;
         return { base: buildNumber.toString(), prefix, separator, increment };
     }
     console.log(`Using release tag ${prefix}${separator}${base} with increment: ${increment}`);
     return { base, prefix, separator, increment };
 }
-async function getChanges(api, prevRelease) {
+async function getChanges(api, prevRelease, repoData) {
+    const { branch, defaultBranch } = repoData;
     let commitRange = '';
     if (prevRelease.commit == null) {
-        commitRange = process.env.GITHUB_SHA;
+        if (branch === defaultBranch) {
+            commitRange = `${process.env.GITHUB_SHA}^..HEAD`;
+        }
+        else {
+            const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
+            const firstCommit = compareReponse.data.commits[0].sha;
+            commitRange = `${firstCommit}^..HEAD`;
+        }
     }
     else {
-        commitRange = `${prevRelease.commit}..`;
+        commitRange = `${prevRelease.commit}..HEAD`;
     }
-    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"', commitRange]);
+    const { stdout, stderr } = await exec.getExecOutput('git', [
+        'log',
+        '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"',
+        commitRange
+    ]);
     if (stderr !== '') {
         throw new Error('Could not get changes due to:' + stderr);
     }
@@ -16226,6 +16239,10 @@ async function getReleaseBody(changes) {
     if (!fs_1.default.existsSync(bodyPath)) {
         // Generate release body ourselves
         let changelog = `## Changes${os_1.default.EOL}`;
+        const changeLimit = core.getInput('releaseChangeLimit');
+        if (parse.isPosInteger(changeLimit)) {
+            changes.length = Math.min(changes.length, parseInt(changeLimit));
+        }
         for (const change of changes) {
             changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os_1.default.EOL}`;
         }
@@ -16233,12 +16250,11 @@ async function getReleaseBody(changes) {
     }
     return fs_1.default.readFileSync(bodyPath, { encoding: 'utf-8' });
 }
-async function getPreRelease(api, repoData) {
-    const { owner, repo, branch } = repoData;
+async function getPreRelease(repoData) {
+    const { branch, defaultBranch } = repoData;
     const preRelease = core.getInput('preRelease');
     if (preRelease === 'auto') {
-        const repoResponse = await api.rest.repos.get({ owner, repo });
-        return repoResponse.data.default_branch !== branch;
+        return defaultBranch !== branch;
     }
     return preRelease === 'true';
 }
@@ -16421,7 +16437,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stringHash = exports.isInteger = exports.removePrefix = exports.parseBooleanInput = exports.parseMultiInput = void 0;
+exports.stringHash = exports.isPosInteger = exports.removePrefix = exports.parseBooleanInput = exports.parseMultiInput = void 0;
 const crypto_1 = __importDefault(__nccwpck_require__(6113));
 function parseMultiInput(input) {
     let result;
@@ -16458,10 +16474,10 @@ function removePrefix(input, prefix) {
     }
 }
 exports.removePrefix = removePrefix;
-function isInteger(value) {
+function isPosInteger(value) {
     return value.match(/^[0-9]+$/) !== null;
 }
-exports.isInteger = isInteger;
+exports.isPosInteger = isPosInteger;
 function stringHash(string) {
     return crypto_1.default.createHash('sha256').update(string).digest('hex').slice(0, 7);
 }

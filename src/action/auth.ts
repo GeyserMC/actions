@@ -4,10 +4,10 @@ import { createAppAuth } from '@octokit/auth-app';
 import { Octokit } from '@octokit/core';
 import { restEndpointMethods } from '@octokit/plugin-rest-endpoint-methods';
 import { OctokitApi } from '../types/auth';
-import { Repo } from '../types/repo';
+import { BaseRepo, Repo } from '../types/repo';
 
-export async function authGithubApp(repoData: Repo): Promise<OctokitApi> {
-    const { owner, repo } = repoData;
+export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: OctokitApi, repoData: Repo}> {
+    const { owner, repo, branch } = baseRepoData;
 
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
@@ -27,6 +27,8 @@ export async function authGithubApp(repoData: Repo): Promise<OctokitApi> {
 
     const octokit = new RestOctokit({ auth: token });
 
+    const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
+
     console.log(`Successfully authenticated as GitHub app`);
-    return octokit;
+    return { octokit, repoData: { owner, repo, branch, defaultBranch } };
 }

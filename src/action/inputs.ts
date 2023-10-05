@@ -12,7 +12,7 @@ export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs
     const prevRelease: PreviousRelease = await getPrevRelease(api, repoData);
 
     const files = getFiles();
-    const changes = await getChanges(api, prevRelease);
+    const changes = await getChanges(api, prevRelease, repoData);
     const tag = await getTag(repoData, prevRelease);
     const release = await getRelease(api, changes, tag, repoData);
 
@@ -60,7 +60,7 @@ async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs
     const { owner, repo, branch } = repoData;
 
     const body = await getReleaseBody(changes);
-    const prerelease = await getPreRelease(api, repoData);
+    const prerelease = await getPreRelease(repoData);
     const name = getName(tag, branch);
     const draft = core.getBooleanInput('draftRelease');
     const generate_release_notes = core.getBooleanInput('ghReleaseNotes');
@@ -81,7 +81,7 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
     const increment = core.getBooleanInput('tagIncrement');
 
     if (base === 'auto') {
-        if (prevRelease.baseTag != null && parse.isInteger(prevRelease.baseTag)) {
+        if (prevRelease.baseTag != null && parse.isPosInteger(prevRelease.baseTag)) {
             const buildNumber = parseInt(prevRelease.baseTag) + (increment ? 1 : 0);
             return { base: buildNumber.toString(), prefix, separator, increment };
         }
@@ -91,7 +91,7 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
         }
     }
 
-    if (parse.isInteger(base) && increment) {
+    if (parse.isPosInteger(base) && increment) {
         const buildNumber = parseInt(base) + 1;
         return { base: buildNumber.toString(), prefix, separator, increment };
     }
@@ -100,16 +100,27 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
     return { base, prefix, separator, increment };
 }
 
-async function getChanges(api: OctokitApi, prevRelease: PreviousRelease): Promise<Inputs.Change[]> {
+async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo): Promise<Inputs.Change[]> {
+    const { branch, defaultBranch } = repoData;
     let commitRange = '';
 
     if (prevRelease.commit == null) {
-        commitRange = process.env.GITHUB_SHA!;
+        if (branch === defaultBranch) {
+            commitRange = `${process.env.GITHUB_SHA!}^..HEAD`;
+        } else {
+            const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
+            const firstCommit = compareReponse.data.commits[0].sha;
+            commitRange = `${firstCommit}^..HEAD`;
+        }
     } else {
-        commitRange = `${prevRelease.commit}..`;
+        commitRange = `${prevRelease.commit}..HEAD`;
     }
 
-    const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"', commitRange]);
+    const { stdout, stderr } = await exec.getExecOutput('git', [
+        'log',
+        '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"',
+        commitRange
+    ]);
 
     if (stderr !== '') {
         throw new Error('Could not get changes due to:' + stderr);
@@ -135,6 +146,11 @@ async function getReleaseBody(changes: Inputs.Change[]): Promise<string> {
         // Generate release body ourselves
         let changelog = `## Changes${os.EOL}`;
 
+        const changeLimit = core.getInput('releaseChangeLimit');
+        if (parse.isPosInteger(changeLimit)) {
+            changes.length = Math.min(changes.length, parseInt(changeLimit));
+        }
+
         for (const change of changes) {
             changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os.EOL}`;
         }
@@ -145,15 +161,13 @@ async function getReleaseBody(changes: Inputs.Change[]): Promise<string> {
     return fs.readFileSync(bodyPath, { encoding: 'utf-8' });
 }
 
-async function getPreRelease(api: OctokitApi, repoData: Repo): Promise<boolean> {
-    const { owner, repo, branch } = repoData;
+async function getPreRelease(repoData: Repo): Promise<boolean> {
+    const { branch, defaultBranch } = repoData;
 
     const preRelease = core.getInput('preRelease');
 
     if (preRelease === 'auto') {
-        const repoResponse = await api.rest.repos.get({ owner, repo });
-
-        return repoResponse.data.default_branch !== branch;
+        return defaultBranch !== branch;
     }
 
     return preRelease === 'true';

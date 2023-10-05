@@ -8,14 +8,14 @@ import { authGithubApp } from 'src/action/auth';
 
 async function run(): Promise<void> {
     try {
-        const repoData = getRepoData();
-        const octokit = await authGithubApp(repoData);
+        const baseRepoData = getRepoData();
+        const { octokit, repoData } = await authGithubApp(baseRepoData);
 
         const inputs = await getInputs(octokit, repoData);
         const releaseResponse = await writeRelease(inputs, octokit, repoData);
         await storeReleaseData(inputs, octokit, repoData);
         await uploadFiles(octokit, inputs, releaseResponse, repoData);
-        
+
         core.setOutput('releaseID', releaseResponse.data.id.toString());
         core.setOutput('releaseBrowserURL', releaseResponse.data.html_url);
         core.setOutput('releaseAPIURL', releaseResponse.data.url);

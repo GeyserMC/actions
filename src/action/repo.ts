@@ -1,7 +1,7 @@
-import { Repo } from "../types/repo";
+import { BaseRepo } from "../types/repo";
 import * as parse from '../util/parse';
 
-export function getRepoData(): Repo {
+export function getRepoData(): BaseRepo {
     if(!process.env.GITHUB_REPOSITORY) {
         throw new Error("GITHUB_REPOSITORY is not defined");
     }
