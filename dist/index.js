@@ -16128,14 +16128,32 @@ const parse = __importStar(__nccwpck_require__(2742));
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 async function getInputs(api, repoData) {
+    const prevRelease = await getPrevRelease(api, repoData);
     const files = getFiles();
-    const changes = await getChanges(api, repoData);
-    const tag = await getTag(api, repoData);
+    const changes = await getChanges(api, prevRelease);
+    const tag = await getTag(repoData, prevRelease);
     const release = await getRelease(api, changes, tag, repoData);
     console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
     return { files, changes, tag, release };
 }
 exports.getInputs = getInputs;
+async function getPrevRelease(api, repoData) {
+    const { owner, repo, branch } = repoData;
+    const variable = 'releaseAction_prevRelease';
+    try {
+        const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+        const reponse = JSON.parse(varResponse.data.value);
+        const prevRelease = reponse[branch];
+        if (prevRelease == null) {
+            return { commit: undefined, baseTag: undefined };
+        }
+        return { commit: prevRelease.c, baseTag: prevRelease.t };
+    }
+    catch (error) {
+        await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '{}' });
+        return { commit: undefined, baseTag: undefined };
+    }
+}
 function getFiles() {
     const files = core.getInput('files', { required: true });
     return parse.parseMultiInput(files).map(file => {
@@ -16160,24 +16178,19 @@ async function getRelease(api, changes, tag, repoData) {
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
     return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info };
 }
-async function getTag(api, repoData) {
-    const { owner, repo, branch } = repoData;
+async function getTag(repoData, prevRelease) {
+    const { branch } = repoData;
     const base = core.getInput('tagBase');
     const separator = core.getInput('tagSeparator');
     const prefix = core.getInput('tagPrefix') == 'auto' ? branch : core.getInput('tagPrefix');
     const increment = core.getBooleanInput('tagIncrement');
     if (base === 'auto') {
-        const variable = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
-        try {
-            const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
-            if (varResponse.status === 200 && parse.isInteger(varResponse.data.value)) {
-                const buildNumber = parseInt(varResponse.data.value) + (increment ? 1 : 0);
-                return { base: buildNumber.toString(), prefix, separator, increment, variable };
-            }
+        if (prevRelease.baseTag != null && parse.isInteger(prevRelease.baseTag)) {
+            const buildNumber = parseInt(prevRelease.baseTag) + (increment ? 1 : 0);
+            return { base: buildNumber.toString(), prefix, separator, increment };
         }
-        catch (error) {
-            await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: '0' });
-            return { base: '1', prefix, separator, increment, variable };
+        if (prevRelease.baseTag == null) {
+            return { base: '1', prefix, separator, increment };
         }
     }
     if (parse.isInteger(base) && increment) {
@@ -16187,19 +16200,13 @@ async function getTag(api, repoData) {
     console.log(`Using release tag ${prefix}${separator}${base} with increment: ${increment}`);
     return { base, prefix, separator, increment };
 }
-async function getChanges(api, repoData) {
-    const { owner, repo, branch } = repoData;
+async function getChanges(api, prevRelease) {
     let commitRange = '';
-    const variable = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
-    try {
-        const prevCommitVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
-        commitRange = `${prevCommitVarResponse.data.value}..`;
-        console.log(`Using commit range ${commitRange}`);
-    }
-    catch (error) {
-        await api.rest.actions.createRepoVariable({ owner, repo, name: variable, value: process.env.GITHUB_SHA });
+    if (prevRelease.commit == null) {
         commitRange = process.env.GITHUB_SHA;
-        console.log(`No previous commit found, using ${commitRange}`);
+    }
+    else {
+        commitRange = `${prevRelease.commit}..`;
     }
     const { stdout, stderr } = await exec.getExecOutput('git', ['log', '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"', commitRange]);
     if (stderr !== '') {
@@ -16359,56 +16366,46 @@ exports.getRepoData = getRepoData;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.storeReleaseData = void 0;
-const parse = __importStar(__nccwpck_require__(2742));
+const core_1 = __importDefault(__nccwpck_require__(2186));
+const util_1 = __nccwpck_require__(3837);
 async function storeReleaseData(inputs, api, repoData) {
-    const { owner, repo, branch } = repoData;
-    const commitVar = `releaseAction_${parse.sanitizeVariableName(branch)}_prevCommit`;
-    await api.rest.actions.updateRepoVariable({
-        owner,
-        repo,
-        name: commitVar,
-        value: process.env.GITHUB_SHA
-    });
-    console.log(`Updated variable ${commitVar} to ${process.env.GITHUB_SHA}`);
-    if (!inputs.tag.increment) {
-        return;
+    let updated = await checkStoreReleaseData(inputs, api, repoData);
+    let retries = 0;
+    while (!updated && retries < 10) {
+        console.log(`Previous release data not updated, retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        updated = await checkStoreReleaseData(inputs, api, repoData);
+        retries++;
+        if (retries === 10) {
+            core_1.default.setFailed(`Previous release data not updated after 10 retries`);
+        }
     }
-    const buildNumberVar = `releaseAction_${parse.sanitizeVariableName(branch)}_buildNumber`;
-    const buildNumber = inputs.tag.base;
-    await api.rest.actions.updateRepoVariable({
-        owner,
-        repo,
-        name: buildNumberVar,
-        value: buildNumber
-    });
-    console.log(`Updated variable ${buildNumberVar} to ${buildNumber}`);
+    console.log(`Updated previous commit ${process.env.GITHUB_SHA}`);
+    console.log(`Updated previous base tag to ${inputs.tag.base}`);
 }
 exports.storeReleaseData = storeReleaseData;
+async function checkStoreReleaseData(inputs, api, repoData) {
+    const { owner, repo, branch } = repoData;
+    const newEntry = { c: process.env.GITHUB_SHA, t: inputs.tag.base };
+    const variable = 'releaseAction_prevRelease';
+    const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+    const value = JSON.parse(varResponse.data.value);
+    value[branch] = newEntry;
+    await api.rest.actions.updateRepoVariable({
+        owner,
+        repo,
+        name: variable,
+        value: JSON.stringify(value)
+    });
+    const updatedVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
+    const updatedValue = JSON.parse(updatedVarResponse.data.value);
+    return (0, util_1.isDeepStrictEqual)(value, updatedValue);
+}
 
 
 /***/ }),
@@ -16422,7 +16419,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stringHash = exports.isInteger = exports.sanitizeVariableName = exports.removePrefix = exports.parseBooleanInput = exports.parseMultiInput = void 0;
+exports.stringHash = exports.isInteger = exports.removePrefix = exports.parseBooleanInput = exports.parseMultiInput = void 0;
 const crypto_1 = __importDefault(__nccwpck_require__(6113));
 function parseMultiInput(input) {
     let result;
@@ -16459,10 +16456,6 @@ function removePrefix(input, prefix) {
     }
 }
 exports.removePrefix = removePrefix;
-function sanitizeVariableName(name) {
-    return name.replace(/[^a-zA-Z0-9_]/g, '_');
-}
-exports.sanitizeVariableName = sanitizeVariableName;
 function isInteger(value) {
     return value.match(/^[0-9]+$/) !== null;
 }

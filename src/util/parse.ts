@@ -33,10 +33,6 @@ export function removePrefix(input: string | undefined, prefix: string): string 
     }
 }
 
-export function sanitizeVariableName(name: string): string {
-    return name.replace(/[^a-zA-Z0-9_]/g, '_');
-}
-
 export function isInteger(value: string): boolean {
     return value.match(/^[0-9]+$/) !== null;
 }
