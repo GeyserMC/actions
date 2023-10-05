@@ -16402,6 +16402,8 @@ async function checkStoreReleaseData(inputs, api, repoData) {
         name: variable,
         value: JSON.stringify(value)
     });
+    // Wait a bit for the variable to update then check if it's updated
+    await new Promise(resolve => setTimeout(resolve, 1000));
     const updatedVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
     const updatedValue = JSON.parse(updatedVarResponse.data.value);
     return (0, util_1.isDeepStrictEqual)(value, updatedValue);

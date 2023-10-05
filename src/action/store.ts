@@ -41,6 +41,9 @@ async function checkStoreReleaseData(inputs: Inputs, api: OctokitApi, repoData: 
         value: JSON.stringify(value)
     });
 
+    // Wait a bit for the variable to update then check if it's updated
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const updatedVarResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
     const updatedValue: Record<string, { c: string, t: string }> = JSON.parse(updatedVarResponse.data.value);
     return isDeepStrictEqual(value, updatedValue);
