@@ -133,8 +133,10 @@ async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoDat
         const message = c.commit.message;
         const timestamp = c.commit.committer && c.commit.committer.date ? new Date(c.commit.committer.date).getTime().toString() : '';
         const author = c.author ? c.author.login : '';
-        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)?.map(
-            coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1')).filter(coauthor => coauthor !== '') ?? [];
+        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)
+            ?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1'))
+            .filter((value, index, array) => array.indexOf(value) === index)
+            .filter(coauthor => coauthor !== '') ?? [];
 
         changes.push({ commit, summary, message, timestamp, author, coauthors });
     }
