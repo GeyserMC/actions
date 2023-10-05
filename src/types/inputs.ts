@@ -23,6 +23,8 @@ export namespace Inputs {
         readonly summary: string;
         readonly message: string;
         readonly timestamp: string;
+        readonly author: string;
+        readonly coauthors: string[];
     }
 
     export interface Release {

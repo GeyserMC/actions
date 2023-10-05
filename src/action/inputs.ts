@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import fs from 'fs';
-import * as exec from '@actions/exec';
 import { Inputs, PreviousRelease } from '../types/inputs';
 import * as parse from '../util/parse';
 import { Repo } from '../types/repo';
@@ -102,40 +101,45 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
 
 async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo): Promise<Inputs.Change[]> {
     const { branch, defaultBranch } = repoData;
-    let commitRange = '';
+    let firstCommit = '';
+    let lastCommit = '';
 
     if (prevRelease.commit == null) {
         if (branch === defaultBranch) {
-            commitRange = `${process.env.GITHUB_SHA!}^..HEAD`;
+            firstCommit = `${process.env.GITHUB_SHA!}^`;
+            lastCommit = process.env.GITHUB_SHA!;
         } else {
             const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
-            const firstCommit = compareReponse.data.commits[0].sha;
-            commitRange = `${firstCommit}^..HEAD`;
+            try {
+                firstCommit = `${compareReponse.data.commits[0].sha}^`;
+            } catch (error) {
+                firstCommit = `${process.env.GITHUB_SHA!}^`;
+            }
+            lastCommit = process.env.GITHUB_SHA!;
         }
     } else {
-        commitRange = `${prevRelease.commit}..HEAD`;
-    }
-
-    const { stdout, stderr } = await exec.getExecOutput('git', [
-        'log',
-        '--pretty=format:"%H%x00%s%x00%b%x00%ct%x00"',
-        commitRange
-    ]);
-
-    if (stderr !== '') {
-        throw new Error('Could not get changes due to:' + stderr);
+        firstCommit = prevRelease.commit;
+        lastCommit = process.env.GITHUB_SHA!;
     }
 
     const changes: Inputs.Change[] = [];
 
-    for (const line of stdout.split('\0' + '"' + os.EOL)) {
-        const [commit, summary, message, timestamp] = line.substring(1).split('\0');
+    const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999 });
+    const commits = compareReponse.data.commits;
 
-        changes.push({ commit, summary, message, timestamp });
+    for (const c of commits) {
+        const commit = c.sha;
+        const summary = c.commit.message.split('\n')[0];
+        const message = c.commit.message;
+        const timestamp = c.commit.committer && c.commit.committer.date ? new Date(c.commit.committer.date).getTime().toString() : '';
+        const author = c.author ? c.author.login : '';
+        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1')) ?? [];
+
+        changes.push({ commit, summary, message, timestamp, author, coauthors });
     }
 
     console.log('');
-    console.log(`Found ${changes.length} changes in commit range ${commitRange}`);
+    console.log(`Found ${changes.length} changes in commit range ${firstCommit}...${lastCommit}`);
     return changes;
 }
 
@@ -145,10 +149,11 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
     if (!fs.existsSync(bodyPath)) {
         // Generate release body ourselves
         const { owner, repo } = repoData;
-        let changelog = `## Changes${os.EOL}`;
+        const firstCommit = changes[0].commit.slice(0, 7);
+        const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
+        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
 
-        const firstCommit = changes[changes.length - 1].commit.slice(0, 7);
-        const lastCommit = changes[0].commit.slice(0, 7);
+        let changelog = `## Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os.EOL}`;
 
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
@@ -158,16 +163,13 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
         }
 
         for (const change of changes) {
-            changelog += `- ${change.summary} (${change.commit.slice(0, 7)})${os.EOL}`;
+            const authors = [change.author, ...change.coauthors].filter(author => author !== '').map(author => `@${author}`).join(', ');
+            changelog += `- ${change.summary} (${change.commit.slice(0, 7)}) by ${authors}${os.EOL}`;
         }
 
         if (truncatedChanges > 0) {
             changelog += `... and ${truncatedChanges} more${os.EOL}`;
         }
-
-        changelog += os.EOL;
-        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
-        changelog += `### Compare: ([\`${firstCommit}...${lastCommit}\`](${diffURL}))${os.EOL}`;
 
         return changelog;
     }
