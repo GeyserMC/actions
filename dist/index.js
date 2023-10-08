@@ -63678,7 +63678,7 @@ function getRepoData() {
     const branch = parse.removePrefix(process.env.GITHUB_REF, 'refs/heads/');
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
     const url = process.env.GITHUB_SERVER_URL;
-    console.log(`Using repo ${owner}/${repo} on branch ${branch}`);
+    console.log(`Using repo ${owner}/${repo} on branch ${branch} at ${url}`);
     return { owner, repo, branch, url };
 }
 exports.getRepoData = getRepoData;

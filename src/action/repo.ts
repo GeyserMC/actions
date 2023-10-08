@@ -15,6 +15,6 @@ export function getRepoData(): BaseRepo {
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
     const url = process.env.GITHUB_SERVER_URL!
 
-    console.log(`Using repo ${owner}/${repo} on branch ${branch}`)
+    console.log(`Using repo ${owner}/${repo} on branch ${branch} at ${url}`)
     return { owner, repo, branch, url };
 }
