@@ -35,6 +35,9 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
     const author = updatedRelease.data.author.type === 'User' ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace('[bot]', '');
     const tag = updatedRelease.data.tag_name;
     const sha = inputs.changes[inputs.changes.length - 1].commit.slice(0, 7);
+    const statusEmoji = failed ? ':red_circle:' : 'green_circle';
+    const status = failed ? 'Failed' : 'Success';
+    const runID = process.env.GITHUB_RUN_ID!;
 
     const embed = new Embed()
         .setTimestamp()
@@ -51,6 +54,7 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
         .addField({ name: '', value: `:label: [${tag}](https://github.com/${owner}/${repo}/tree/${tag})`, inline: true })
         .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
+        .addField({ name: '', value: `${statusEmoji} [${status}](https://github.com/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url })
 
     if (thumbnail) {
