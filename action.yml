@@ -23,6 +23,10 @@ inputs:
         description: 'Whether or not the release should be a draft. Defaults to false if not specified.'
         required: false
         default: 'false'
+    ghApiUrl:
+        description: 'The GitHub API URL to use. Defaults to "https://api.github.com" if not specified.'
+        required: false
+        default: 'https://api.github.com'
     ghReleaseNotes:
         description: 'Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.'
         required: false

@@ -8,7 +8,8 @@ import { BaseRepo, Repo } from '../types/repo';
 import { request } from "@octokit/request"
 
 export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: OctokitApi, repoData: Repo}> {
-    const { owner, repo, branch, url } = baseRepoData;
+    const { owner, repo, branch } = baseRepoData;
+    const url = core.getInput('url').replace(/\/$/, '');
 
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
@@ -18,7 +19,7 @@ export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: O
         appId: parseInt(appId),
         privateKey,
         request: request.defaults({
-            baseUrl: url,
+            baseUrl: url
         }),
     });
 
