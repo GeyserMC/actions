@@ -8,8 +8,8 @@ import { BaseRepo, Repo } from '../types/repo';
 import { request } from "@octokit/request"
 
 export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: OctokitApi, repoData: Repo}> {
-    const { owner, repo, branch } = baseRepoData;
-    const url = core.getInput('url').replace(/\/$/, '');
+    const { owner, repo, branch, url } = baseRepoData;
+    const apiUrl = core.getInput('url').replace(/\/$/, '');
 
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
@@ -19,18 +19,18 @@ export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: O
         appId: parseInt(appId),
         privateKey,
         request: request.defaults({
-            baseUrl: url
+            baseUrl: apiUrl
         }),
     });
 
     const auth = await app({ type: 'app' });
     const RestOctokit = Octokit.plugin(restEndpointMethods);
-    const appOctokit = new RestOctokit({ auth: auth.token, baseUrl: url });
+    const appOctokit = new RestOctokit({ auth: auth.token, baseUrl: apiUrl });
 
     const installationID = await appOctokit.rest.apps.getRepoInstallation({ owner, repo }).then(response => response.data.id);
     const token = await appOctokit.rest.apps.createInstallationAccessToken({ installation_id: installationID }).then(response => response.data.token);
 
-    const octokit = new RestOctokit({ auth: token, baseUrl: url });
+    const octokit = new RestOctokit({ auth: token, baseUrl: apiUrl });
 
     const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
 

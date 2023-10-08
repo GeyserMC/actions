@@ -10,7 +10,7 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         return;
     }
 
-    const { owner, repo, url: baseUrl } = repoData;
+    const { owner, repo, url } = repoData;
 
     const failed = !inputs.success
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
@@ -43,8 +43,8 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         .setTimestamp()
         .setAuthor({
             name: `${owner}/${repo}`,
-            url: `https://github.com/${owner}/${repo}`,
-            icon_url: `https://github.com/${owner}.png`
+            url: `${url}/${owner}/${repo}`,
+            icon_url: `${url}/${owner}.png`
         })
         .setColor(color)
         .setTitle(inputs.release.name)
@@ -52,9 +52,9 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         .setDescription(inputs.release.body)
         .addField({ name: 'Assets', value: assets, inline: false })
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
-        .addField({ name: '', value: `:label: [${tag}](https://github.com/${owner}/${repo}/tree/${tag})`, inline: true })
-        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
-        .addField({ name: '', value: `${statusEmoji} [${status}](https://github.com/${owner}/${repo}/actions/runs/${runID})`, inline: true })
+        .addField({ name: '', value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true })
+        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true })
+        .addField({ name: '', value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url })
 
     if (thumbnail) {
