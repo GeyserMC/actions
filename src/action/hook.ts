@@ -35,7 +35,7 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
     const author = updatedRelease.data.author.type === 'User' ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace('[bot]', '');
     const tag = updatedRelease.data.tag_name;
     const sha = inputs.changes[inputs.changes.length - 1].commit.slice(0, 7);
-    const statusEmoji = failed ? ':red_circle:' : 'green_circle';
+    const statusEmoji = failed ? ':red_circle:' : ':green_circle:';
     const status = failed ? 'Failed' : 'Success';
     const runID = process.env.GITHUB_RUN_ID!;
 
