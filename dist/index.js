@@ -63293,9 +63293,9 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
     }
     const { owner, repo } = repoData;
     const runID = process.env.GITHUB_RUN_ID;
-    const runNumber = process.env.GITHUB_RUN_NUMBER;
-    const statusResponse = await api.rest.actions.listJobsForWorkflowRunAttempt({ owner, repo, run_id: parseInt(runID), attempt_number: parseInt(runNumber) });
+    const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
     const failed = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length > 0;
+    console.log(`Workflow status is: ${failed ? 'failed' : 'success'}`);
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
     const thumbnails = (await (0, open_graph_scraper_1.default)({ url: releaseResponse.data.html_url })).result.ogImage;
     const thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
