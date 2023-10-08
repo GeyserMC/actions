@@ -164,10 +164,10 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
 
     if (!fs.existsSync(bodyPath)) {
         // Generate release body ourselves
-        const { owner, repo } = repoData;
+        const { owner, repo, url } = repoData;
         const firstCommit = changes[0].commit.slice(0, 7);
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
-        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
+        const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
 
         let changelog = `## Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os.EOL}`;
 
@@ -194,7 +194,7 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
                     break;
             }
             const sha = change.commit.slice(0, 7);
-            changelog += `- ${markdownEscape(change.summary)} ([\`${sha}\`](https://github.com/${owner}/${repo}/commit/${sha})) by ${markdownEscape(authors)}${os.EOL}`;
+            changelog += `- ${markdownEscape(change.summary)} ([\`${sha}\`](${url}/${owner}/${repo}/commit/${sha})) by ${markdownEscape(authors)}${os.EOL}`;
         }
 
         if (truncatedChanges > 0) {

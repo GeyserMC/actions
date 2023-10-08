@@ -63117,24 +63117,28 @@ const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const auth_app_1 = __nccwpck_require__(7541);
 const core_1 = __nccwpck_require__(6762);
 const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
+const request_1 = __nccwpck_require__(6234);
 async function authGithubApp(baseRepoData) {
-    const { owner, repo, branch } = baseRepoData;
+    const { owner, repo, branch, url } = baseRepoData;
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
     const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export({ type: 'pkcs8', format: 'pem' }).toString();
     const app = (0, auth_app_1.createAppAuth)({
         appId: parseInt(appId),
-        privateKey
+        privateKey,
+        request: request_1.request.defaults({
+            baseUrl: url,
+        }),
     });
     const auth = await app({ type: 'app' });
     const RestOctokit = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods);
-    const appOctokit = new RestOctokit({ auth: auth.token });
+    const appOctokit = new RestOctokit({ auth: auth.token, baseUrl: url });
     const installationID = await appOctokit.rest.apps.getRepoInstallation({ owner, repo }).then(response => response.data.id);
     const token = await appOctokit.rest.apps.createInstallationAccessToken({ installation_id: installationID }).then(response => response.data.token);
-    const octokit = new RestOctokit({ auth: token });
+    const octokit = new RestOctokit({ auth: token, baseUrl: url });
     const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
     console.log(`Successfully authenticated as GitHub app`);
-    return { octokit, repoData: { owner, repo, branch, defaultBranch } };
+    return { octokit, repoData: { owner, repo, branch, defaultBranch, url } };
 }
 exports.authGithubApp = authGithubApp;
 
@@ -63291,7 +63295,7 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
     if (!inputs.release.hook) {
         return;
     }
-    const { owner, repo } = repoData;
+    const { owner, repo, url } = repoData;
     const failed = !inputs.success;
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
@@ -63320,8 +63324,8 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setTimestamp()
         .setAuthor({
         name: `${owner}/${repo}`,
-        url: `https://github.com/${owner}/${repo}`,
-        icon_url: `https://github.com/${owner}.png`
+        url: `${url}/${owner}/${repo}`,
+        icon_url: `${url}/${owner}.png`
     })
         .setColor(color)
         .setTitle(inputs.release.name)
@@ -63329,9 +63333,9 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setDescription(inputs.release.body)
         .addField({ name: 'Assets', value: assets, inline: false })
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
-        .addField({ name: '', value: `:label: [${tag}](https://github.com/${owner}/${repo}/tree/${tag})`, inline: true })
-        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
-        .addField({ name: '', value: `${statusEmoji} [${status}](https://github.com/${owner}/${repo}/actions/runs/${runID})`, inline: true })
+        .addField({ name: '', value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true })
+        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true })
+        .addField({ name: '', value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url });
     if (thumbnail) {
         embed.setImage({ url: thumbnail });
@@ -63516,10 +63520,10 @@ async function getReleaseBody(repoData, changes) {
     const bodyPath = core.getInput('releaseBodyPath');
     if (!fs_1.default.existsSync(bodyPath)) {
         // Generate release body ourselves
-        const { owner, repo } = repoData;
+        const { owner, repo, url } = repoData;
         const firstCommit = changes[0].commit.slice(0, 7);
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
-        const diffURL = `https://github.com/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
+        const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
         let changelog = `## Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os_1.default.EOL}`;
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
@@ -63542,7 +63546,7 @@ async function getReleaseBody(repoData, changes) {
                     break;
             }
             const sha = change.commit.slice(0, 7);
-            changelog += `- ${(0, markdown_escape_1.default)(change.summary)} ([\`${sha}\`](https://github.com/${owner}/${repo}/commit/${sha})) by ${(0, markdown_escape_1.default)(authors)}${os_1.default.EOL}`;
+            changelog += `- ${(0, markdown_escape_1.default)(change.summary)} ([\`${sha}\`](${url}/${owner}/${repo}/commit/${sha})) by ${(0, markdown_escape_1.default)(authors)}${os_1.default.EOL}`;
         }
         if (truncatedChanges > 0) {
             changelog += `... and ${truncatedChanges} more${os_1.default.EOL}`;
@@ -63673,8 +63677,9 @@ function getRepoData() {
     }
     const branch = parse.removePrefix(process.env.GITHUB_REF, 'refs/heads/');
     const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+    const url = process.env.GITHUB_SERVER_URL;
     console.log(`Using repo ${owner}/${repo} on branch ${branch}`);
-    return { owner, repo, branch };
+    return { owner, repo, branch, url };
 }
 exports.getRepoData = getRepoData;
 

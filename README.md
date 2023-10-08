@@ -7,6 +7,7 @@ This action requires a GitHub App with permissions for the repository in which t
 - Contents: `Read and Write`
 - Metadata: `Read-only`
 - Variables: `Read and Write`
+- Actions: `Read-only`
 
 The key is provided in the PEM format and can be directly downloaded from the GitHub App settings page. The contents of this file should be stored in full as a secret in the repository or organization.
 
@@ -29,6 +30,7 @@ The key is provided in the PEM format and can be directly downloaded from the Gi
 | `appID`              | ID of the GitHub App to manage the release system.                                                                                                     |         | `true`   |
 | `appPrivateKey`      | Private key of the GitHub App to manage the release system.                                                                                            |         | `true`   |
 | `files`              | Comma-separated or newline-separated list of release files with optional "label:" prefix.                                                              |         | `true`   |
+| `discordWebhook`     | Discord webhook to post the release to.                                                                                                                | `none`  | `false`  |
 | `discussionCategory` | The category to use for the discussion. Defaults to "none" if not specified.                                                                           | `none`  | `false`  |
 | `draftRelease`       | Whether or not the release should be a draft. Defaults to false if not specified.                                                                      | `false` | `false`  |
 | `ghReleaseNotes`     | Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.                                                      | `false` | `false`  |
