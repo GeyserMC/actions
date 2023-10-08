@@ -19,19 +19,26 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
 
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
 
-    // const thumbnails = (await ogs({ url: releaseResponse.data.html_url })).result.ogImage;
-    // const thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
+    const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
+
+    const thumbnails = await ogs({ url: updatedRelease.data.html_url });
+    let thumbnail: string | undefined = undefined;
+    if (thumbnails.error) {
+        console.log('Could not get thumbnail for release');
+    } else { 
+        thumbnail = thumbnails.result.ogImage && thumbnails.result.ogImage.length > 0 ? thumbnails.result.ogImage[0].url : undefined;
+    }
 
     let assets = '';
-    for (const asset of releaseResponse.data.assets) {
+    for (const asset of updatedRelease.data.assets) {
         assets += `- :page_facing_up: [${asset.name}](${asset.browser_download_url})\n`;
     }
-    assets += `- :package: [Source code (zip)](${releaseResponse.data.zipball_url})\n`;
-    assets += `- :package: [Source code (tar.gz)](${releaseResponse.data.tarball_url})\n`;
+    assets += `- :package: [Source code (zip)](${updatedRelease.data.zipball_url})\n`;
+    assets += `- :package: [Source code (tar.gz)](${updatedRelease.data.tarball_url})\n`;
 
-    const time = new Date(releaseResponse.data.created_at).toString();
-    const author = releaseResponse.data.author.type === 'User' ? releaseResponse.data.author.login : releaseResponse.data.author.login.replace('[bot]', '');
-    const tag = releaseResponse.data.tag_name;
+    const time = Math.floor(new Date(updatedRelease.data.created_at).getTime() / 1000);
+    const author = updatedRelease.data.author.type === 'User' ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace('[bot]', '');
+    const tag = updatedRelease.data.tag_name;
     const sha = inputs.changes[inputs.changes.length - 1].commit.slice(0, 7);
 
     const embed = new Embed()
@@ -43,17 +50,17 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         })
         .setColor(color)
         .setTitle(inputs.release.name)
-        .setUrl(releaseResponse.data.html_url)
+        .setUrl(updatedRelease.data.html_url)
         .setDescription(inputs.release.body)
         .addField({ name: 'Assets', value: assets, inline: false })
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
         .addField({ name: '', value: `:label: [${tag}](https://github.com/${owner}/${repo}/tree/${tag})`, inline: true })
         .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
-        .setFooter({ text: `Released by ${author}`, icon_url: releaseResponse.data.author.avatar_url })
+        .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url })
 
-    // if (thumbnail) {
-    //     embed.setImage({ url: thumbnail });
-    // }
+    if (thumbnail) {
+        embed.setImage({ url: thumbnail });
+    }
 
     new Webhook(inputs.release.hook)
         .setUsername('GitHub Release Action')
