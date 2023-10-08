@@ -19,8 +19,8 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
 
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
 
-    const thumbnails = (await ogs({ url: releaseResponse.data.html_url })).result.ogImage;
-    const thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
+    // const thumbnails = (await ogs({ url: releaseResponse.data.html_url })).result.ogImage;
+    // const thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
 
     let assets = '';
     for (const asset of releaseResponse.data.assets) {
@@ -51,9 +51,9 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
         .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: releaseResponse.data.author.avatar_url })
 
-    if (thumbnail) {
-        embed.setImage({ url: thumbnail });
-    }
+    // if (thumbnail) {
+    //     embed.setImage({ url: thumbnail });
+    // }
 
     new Webhook(inputs.release.hook)
         .setUsername('GitHub Release Action')
