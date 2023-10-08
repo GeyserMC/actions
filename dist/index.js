@@ -63325,8 +63325,8 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setTimestamp()
         .setAuthor({
         name: `${owner}/${repo}`,
-        url: `${baseUrl}/${owner}/${repo}`,
-        icon_url: `${baseUrl}/${owner}.png`
+        url: `https://github.com/${owner}/${repo}`,
+        icon_url: `https://github.com/${owner}.png`
     })
         .setColor(color)
         .setTitle(inputs.release.name)
@@ -63334,9 +63334,9 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setDescription(inputs.release.body)
         .addField({ name: 'Assets', value: assets, inline: false })
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
-        .addField({ name: '', value: `:label: [${tag}](${baseUrl}/${owner}/${repo}/tree/${tag})`, inline: true })
-        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${baseUrl}/${owner}/${repo}/commit/${sha})`, inline: true })
-        .addField({ name: '', value: `${statusEmoji} [${status}](${baseUrl}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
+        .addField({ name: '', value: `:label: [${tag}](https://github.com/${owner}/${repo}/tree/${tag})`, inline: true })
+        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](https://github.com/${owner}/${repo}/commit/${sha})`, inline: true })
+        .addField({ name: '', value: `${statusEmoji} [${status}](https://github.com/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url });
     if (thumbnail) {
         embed.setImage({ url: thumbnail });
