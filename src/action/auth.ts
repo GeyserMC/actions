@@ -9,7 +9,10 @@ import { request } from "@octokit/request"
 
 export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: OctokitApi, repoData: Repo}> {
     const { owner, repo, branch, url } = baseRepoData;
-    const apiUrl = core.getInput('url').replace(/\/$/, '');
+    let apiUrl = core.getInput('url');
+    if (apiUrl === 'auto') {
+        apiUrl = url.replace('https://', 'https://api.');
+    }
 
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });

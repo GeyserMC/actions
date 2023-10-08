@@ -4,23 +4,26 @@ An action to create incremented releases in a similar style to Jenkins
 ## Usage
 
 This action requires a GitHub App with permissions for the repository in which the action will be run. The permissions required are:
-- Contents: `Read and Write`
-- Metadata: `Read-only`
-- Variables: `Read and Write`
-- Actions: `Read-only`
+- Contents: `Read and Write` (for creating releases and uploading assets)
+- Metadata: `Read-only` (required for all GitHub Apps)
+- Variables: `Read and Write` (for tracking release data accross runs)
+- Actions: `Read-only` (for querying the status of the current action)
 
 The key is provided in the PEM format and can be directly downloaded from the GitHub App settings page. The contents of this file should be stored in full as a secret in the repository or organization.
+
+Data about the previous release for each branch is stored under the `RELEASEACTION_PREVRELEASE` actions variable. This can be manually modified if needed so long as the format and proper JSON syntax is preserved.
 
 ### Minimal Configuration
 
 ```yaml
 - uses: Kas-tle/release-action@1.0.0
+  if: always() # If you wish to run even when previous steps have failed
   with:
-    files: |
+    files: | # Newline-separated list of files to upload with optional "label:" prefix
       testa:file_a.json
       testb:file_b.json
-    appID: ${{ secrets.RELEASE_APP_ID }}
-    appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
+    appID: ${{ secrets.RELEASE_APP_ID }} # The ID of the GitHub App to manage the release system
+    appPrivateKey: ${{ secrets.RELEASE_APP_PK }} # The private key of the GitHub App in PEM format
 ```
 
 ### Inputs
@@ -33,6 +36,7 @@ The key is provided in the PEM format and can be directly downloaded from the Gi
 | `discordWebhook`     | Discord webhook to post the release to.                                                                                                                | `none`  | `false`  |
 | `discussionCategory` | The category to use for the discussion. Defaults to "none" if not specified.                                                                           | `none`  | `false`  |
 | `draftRelease`       | Whether or not the release should be a draft. Defaults to false if not specified.                                                                      | `false` | `false`  |
+| `ghApiUrl`           | The GitHub API URL to use. Defaults to the api. plus the repo domain if not specified.                                                                 | `auto`  | `false`  |
 | `ghReleaseNotes`     | Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.                                                      | `false` | `false`  |
 | `includeReleaseInfo` | Whether or not to include the asset hashes in a release.json file. Defaults to true if not specified.                                                  | `true`  | `false`  |
 | `latestRelease`      | Whether or not the release should be marked as the latest release. Defaults to auto if not specified, which will be true unless this is a pre-release. | `auto`  | `false`  |

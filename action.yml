@@ -24,9 +24,9 @@ inputs:
         required: false
         default: 'false'
     ghApiUrl:
-        description: 'The GitHub API URL to use. Defaults to "https://api.github.com" if not specified.'
+        description: 'The GitHub API URL to use. Defaults to the api. plus the repo domain if not specified.'
         required: false
-        default: 'https://api.github.com'
+        default: 'auto'
     ghReleaseNotes:
         description: 'Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.'
         required: false
