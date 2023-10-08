@@ -3,6 +3,7 @@ export interface Inputs {
     readonly changes: Inputs.Change[];
     readonly tag: Inputs.Tag;
     readonly release: Inputs.Release;
+    readonly success: boolean;
 }
 
 export namespace Inputs {

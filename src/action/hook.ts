@@ -12,21 +12,16 @@ export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Rep
 
     const { owner, repo } = repoData;
 
-    const runID = process.env.GITHUB_RUN_ID!;
-    const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
-    const failed = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length > 0;
-    console.log(`Workflow status is: ${failed ? 'failed' : 'success'}`);
-
+    const failed = !inputs.success
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
-
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
 
-    const thumbnails = await ogs({ url: updatedRelease.data.html_url });
     let thumbnail: string | undefined = undefined;
-    if (thumbnails.error) {
+    try {
+        const thumbnails = (await ogs({ url: updatedRelease.data.html_url })).result.ogImage;
+        thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
+    } catch (error) {
         console.log('Could not get thumbnail for release');
-    } else { 
-        thumbnail = thumbnails.result.ogImage && thumbnails.result.ogImage.length > 0 ? thumbnails.result.ogImage[0].url : undefined;
     }
 
     let assets = '';

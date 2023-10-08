@@ -14,10 +14,11 @@ export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs
     const files = getFiles();
     const changes = await getChanges(api, prevRelease, repoData);
     const tag = await getTag(repoData, prevRelease);
-    const release = await getRelease(api, changes, tag, repoData);
+    const success = await getSuccess(api, repoData);
+    const release = await getRelease(api, changes, tag, repoData, success);
 
     console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
-    return { files, changes, tag, release };
+    return { files, changes, tag, release, success };
 }
 
 async function getPrevRelease(api: OctokitApi, repoData: Repo): Promise<PreviousRelease> {
@@ -56,7 +57,7 @@ function getFiles(): Inputs.File[] {
     });
 }
 
-async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo): Promise<Inputs.Release> {
+async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo, success: boolean): Promise<Inputs.Release> {
     const { owner, repo, branch } = repoData;
 
     const body = await getReleaseBody(repoData, changes);
@@ -65,7 +66,7 @@ async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs
     const draft = core.getBooleanInput('draftRelease');
     const generate_release_notes = core.getBooleanInput('ghReleaseNotes');
     const discussion_category_name = await getDiscussionCategory(api, owner, repo);
-    const make_latest = getMakeLatest(prerelease);
+    const make_latest = getMakeLatest(prerelease, success);
     const info = core.getBooleanInput('includeReleaseInfo');
     const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
 
@@ -73,6 +74,16 @@ async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs
     return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook };
 }
 
+async function getSuccess(api: OctokitApi, repoData: Repo): Promise<boolean> {
+    const { owner, repo } = repoData;
+
+    const runID = process.env.GITHUB_RUN_ID!;
+    const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
+    const success = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length === 0;
+    console.log(`Workflow status is: ${success ? 'success' : 'failure'}`);
+
+    return success;
+}
 async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inputs.Tag> {
     const { branch } = repoData;
 
@@ -235,7 +246,11 @@ async function getDiscussionCategory(_api: OctokitApi, _owner: string, _repo: st
     return category;
 }
 
-function getMakeLatest(prerelease: boolean): "true" | "false" | "legacy" | undefined {
+function getMakeLatest(prerelease: boolean, success: boolean): "true" | "false" | "legacy" | undefined {
+    if (!success) {
+        return "false";
+    }
+    
     const make_latest = core.getInput('latestRelease');
 
     switch (make_latest) {

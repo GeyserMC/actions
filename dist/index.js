@@ -63292,19 +63292,16 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         return;
     }
     const { owner, repo } = repoData;
-    const runID = process.env.GITHUB_RUN_ID;
-    const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
-    const failed = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length > 0;
-    console.log(`Workflow status is: ${failed ? 'failed' : 'success'}`);
+    const failed = !inputs.success;
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
-    const thumbnails = await (0, open_graph_scraper_1.default)({ url: updatedRelease.data.html_url });
     let thumbnail = undefined;
-    if (thumbnails.error) {
-        console.log('Could not get thumbnail for release');
+    try {
+        const thumbnails = (await (0, open_graph_scraper_1.default)({ url: updatedRelease.data.html_url })).result.ogImage;
+        thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
     }
-    else {
-        thumbnail = thumbnails.result.ogImage && thumbnails.result.ogImage.length > 0 ? thumbnails.result.ogImage[0].url : undefined;
+    catch (error) {
+        console.log('Could not get thumbnail for release');
     }
     let assets = '';
     for (const asset of updatedRelease.data.assets) {
@@ -63390,9 +63387,10 @@ async function getInputs(api, repoData) {
     const files = getFiles();
     const changes = await getChanges(api, prevRelease, repoData);
     const tag = await getTag(repoData, prevRelease);
-    const release = await getRelease(api, changes, tag, repoData);
+    const success = await getSuccess(api, repoData);
+    const release = await getRelease(api, changes, tag, repoData, success);
     console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
-    return { files, changes, tag, release };
+    return { files, changes, tag, release, success };
 }
 exports.getInputs = getInputs;
 async function getPrevRelease(api, repoData) {
@@ -63423,7 +63421,7 @@ function getFiles() {
         return { label, path: paths.join(':') };
     });
 }
-async function getRelease(api, changes, tag, repoData) {
+async function getRelease(api, changes, tag, repoData, success) {
     const { owner, repo, branch } = repoData;
     const body = await getReleaseBody(repoData, changes);
     const prerelease = await getPreRelease(repoData);
@@ -63431,11 +63429,19 @@ async function getRelease(api, changes, tag, repoData) {
     const draft = core.getBooleanInput('draftRelease');
     const generate_release_notes = core.getBooleanInput('ghReleaseNotes');
     const discussion_category_name = await getDiscussionCategory(api, owner, repo);
-    const make_latest = getMakeLatest(prerelease);
+    const make_latest = getMakeLatest(prerelease, success);
     const info = core.getBooleanInput('includeReleaseInfo');
     const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
     return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook };
+}
+async function getSuccess(api, repoData) {
+    const { owner, repo } = repoData;
+    const runID = process.env.GITHUB_RUN_ID;
+    const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
+    const success = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length === 0;
+    console.log(`Workflow status is: ${success ? 'success' : 'failure'}`);
+    return success;
 }
 async function getTag(repoData, prevRelease) {
     const { branch } = repoData;
@@ -63569,7 +63575,10 @@ async function getDiscussionCategory(_api, _owner, _repo) {
     }
     return category;
 }
-function getMakeLatest(prerelease) {
+function getMakeLatest(prerelease, success) {
+    if (!success) {
+        return "false";
+    }
     const make_latest = core.getInput('latestRelease');
     switch (make_latest) {
         case "true":
