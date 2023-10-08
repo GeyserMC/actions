@@ -6,6 +6,7 @@ import { Repo } from '../types/repo';
 import os from 'os';
 import path from 'path';
 import { OctokitApi } from '../types/auth';
+import markdownEscape from 'markdown-escape';
 
 export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs> {
     const prevRelease: PreviousRelease = await getPrevRelease(api, repoData);
@@ -66,9 +67,10 @@ async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs
     const discussion_category_name = await getDiscussionCategory(api, owner, repo);
     const make_latest = getMakeLatest(prerelease);
     const info = core.getBooleanInput('includeReleaseInfo');
+    const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
 
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook };
 }
 
 async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inputs.Tag> {
@@ -180,7 +182,8 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
                     authors = `${allAuthors.slice(0, allAuthors.length - 1).join(', ')} & ${allAuthors[allAuthors.length - 1]}`;
                     break;
             }
-            changelog += `- ${change.summary} (${change.commit.slice(0, 7)}) by ${authors}${os.EOL}`;
+            const sha = change.commit.slice(0, 7);
+            changelog += `- ${markdownEscape(change.summary)} ([\`${sha}\`](https://github.com/${owner}/${repo}/commit/${sha})) by ${markdownEscape(authors)}${os.EOL}`;
         }
 
         if (truncatedChanges > 0) {

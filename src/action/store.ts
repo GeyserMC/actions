@@ -19,7 +19,6 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
         }
     }
 
-
     console.log(`Updated previous commit ${process.env.GITHUB_SHA!}`);
     console.log(`Updated previous base tag to ${inputs.tag.base}`);
 }

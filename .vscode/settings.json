@@ -3,6 +3,7 @@
     "typescript.tsserver.experimental.enableProjectDiagnostics": true,
     "typescript.referencesCodeLens.enabled": false,
     "typescript.referencesCodeLens.showOnAllFunctions": false,
+    "typescript.preferences.importModuleSpecifier": "relative",
     "search.exclude": {
         "**/node_modules": true,
         "**/dist": true

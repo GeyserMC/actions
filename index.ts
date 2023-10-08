@@ -1,10 +1,11 @@
 import * as core from '@actions/core'
-import { getInputs } from 'src/action/inputs';
-import { writeRelease } from 'src/action/release';
-import { getRepoData } from 'src/action/repo';
-import { storeReleaseData } from 'src/action/store';
-import { uploadFiles } from 'src/action/files';
-import { authGithubApp } from 'src/action/auth';
+import { getInputs } from './src/action/inputs';
+import { writeRelease } from './src/action/release';
+import { getRepoData } from './src/action/repo';
+import { storeReleaseData } from './src/action/store';
+import { uploadFiles } from './src/action/files';
+import { authGithubApp } from './src/action/auth';
+import { sendWebhook } from './src/action/hook';
 
 async function run(): Promise<void> {
     try {
@@ -15,6 +16,7 @@ async function run(): Promise<void> {
         const releaseResponse = await writeRelease(inputs, octokit, repoData);
         await storeReleaseData(inputs, octokit, repoData);
         await uploadFiles(octokit, inputs, releaseResponse, repoData);
+        await sendWebhook(inputs, octokit, repoData, releaseResponse);
 
         core.setOutput('releaseID', releaseResponse.data.id.toString());
         core.setOutput('releaseBrowserURL', releaseResponse.data.html_url);

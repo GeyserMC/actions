@@ -2,9 +2,19 @@ name: base-release-action
 description: "An action to create incremented releases in a similar style to Jenkins."
 
 inputs:
+    appID:
+        description: 'ID of the GitHub App to manage the release system.'
+        required: true
+    appPrivateKey:
+        description: 'Private key of the GitHub App to manage the release system.'
+        required: true
     files:
         description: 'Comma-separated or newline-separated list of release files with optional "label:" prefix.'
         required: true
+    discordWebhook:
+        description: 'Discord webhook to post the release to.'
+        required: false
+        default: 'none'
     discussionCategory:
         description: 'The category to use for the discussion. Defaults to "none" if not specified.'
         required: false
@@ -57,24 +67,18 @@ inputs:
         description: 'The separator to use between the tag prefix and the tag base. Defaults to "-" if not specified.'
         required: false
         default: '-'
-    appID:
-        description: 'ID of the GitHub App to manage the release system.'
-        required: true
-    appPrivateKey:
-        description: 'Private key of the GitHub App to manage the release system.'
-        required: true
 
 outputs:
     releaseID:
-        description: 'The ID of the release'
+        description: 'The ID of the release.'
     releaseAPIURL:
-        description: 'The API URL of the release'
+        description: 'The API URL of the release.'
     releaseAssetsURL:
-        description: 'The asset URL for the release'
+        description: 'The asset URL for the release.'
     releaseBrowserURL:
-        description: 'The browser URL of the release'
+        description: 'The browser URL of the release.'
     uploadAssetsURL:
-        description: 'The asset upload URL for the release'
+        description: 'The asset upload URL for the release.'
 
 runs:
     using: "node20"

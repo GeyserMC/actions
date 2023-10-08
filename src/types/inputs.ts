@@ -36,6 +36,7 @@ export namespace Inputs {
         readonly discussion_category_name: string | undefined;
         readonly make_latest: "true" | "false" | "legacy" | undefined;
         readonly info: boolean;
+        readonly hook: string | undefined;
     }
 }
 

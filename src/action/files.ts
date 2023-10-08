@@ -10,13 +10,15 @@ import { Readable } from "stream";
 import { OctokitApi } from "../types/auth";
 
 export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo) {
-    const uploads= await uploadProvidedFiles(api, inputs, release, repoData);
+    const uploads = await uploadProvidedFiles(api, inputs, release, repoData);
 
     if (!inputs.release.info) {
         return;
     }
 
     await uploadReleaseData(api, inputs, release, repoData, uploads);
+
+    return;
 }
 
 async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo): Promise<Record<string, UploadInfo>> {
@@ -26,6 +28,11 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
     const duplicateLabels = files.map(f => f.label).some((label, index, self) => self.indexOf(label) !== index);
 
     next: for (const file of files) {
+        if (!fs.existsSync(file.path)) {
+            console.log(`File ${file.path} does not exist, skipping`);
+            continue next;
+        }
+
         const name = path.basename(file.path);
         const data = fs.createReadStream(file.path);
         const size = fs.statSync(file.path).size;
