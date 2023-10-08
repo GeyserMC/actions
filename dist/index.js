@@ -63296,7 +63296,7 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
     if (!inputs.release.hook) {
         return;
     }
-    const { owner, repo, url } = repoData;
+    const { owner, repo, url: baseUrl } = repoData;
     const failed = !inputs.success;
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
@@ -63325,8 +63325,8 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setTimestamp()
         .setAuthor({
         name: `${owner}/${repo}`,
-        url: `${url}/${owner}/${repo}`,
-        icon_url: `${url}/${owner}.png`
+        url: `${baseUrl}/${owner}/${repo}`,
+        icon_url: `${baseUrl}/${owner}.png`
     })
         .setColor(color)
         .setTitle(inputs.release.name)
@@ -63334,18 +63334,23 @@ async function sendWebhook(inputs, api, repoData, releaseResponse) {
         .setDescription(inputs.release.body)
         .addField({ name: 'Assets', value: assets, inline: false })
         .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
-        .addField({ name: '', value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true })
-        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true })
-        .addField({ name: '', value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
+        .addField({ name: '', value: `:label: [${tag}](${baseUrl}/${owner}/${repo}/tree/${tag})`, inline: true })
+        .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${baseUrl}/${owner}/${repo}/commit/${sha})`, inline: true })
+        .addField({ name: '', value: `${statusEmoji} [${status}](${baseUrl}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url });
     if (thumbnail) {
         embed.setImage({ url: thumbnail });
     }
-    new discord_webhook_1.Webhook(inputs.release.hook)
-        .setUsername('GitHub Release Action')
-        .setAvatarUrl('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png')
-        .addEmbed(embed)
-        .send();
+    try {
+        new discord_webhook_1.Webhook(inputs.release.hook)
+            .setUsername('GitHub Release Action')
+            .setAvatarUrl('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png')
+            .addEmbed(embed)
+            .send();
+    }
+    catch (error) {
+        console.log('Could not send webhook: ', error);
+    }
 }
 exports.sendWebhook = sendWebhook;
 
