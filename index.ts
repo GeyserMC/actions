@@ -6,6 +6,7 @@ import { storeReleaseData } from './src/action/store';
 import { uploadFiles } from './src/action/files';
 import { authGithubApp } from './src/action/auth';
 import { sendWebhook } from './src/action/hook';
+import { setOutputs } from './src/action/output';
 
 async function run(): Promise<void> {
     try {
@@ -17,12 +18,8 @@ async function run(): Promise<void> {
         await storeReleaseData(inputs, octokit, repoData);
         await uploadFiles(octokit, inputs, releaseResponse, repoData);
         await sendWebhook(inputs, octokit, repoData, releaseResponse);
+        setOutputs(releaseResponse);
 
-        core.setOutput('releaseID', releaseResponse.data.id.toString());
-        core.setOutput('releaseBrowserURL', releaseResponse.data.html_url);
-        core.setOutput('releaseAPIURL', releaseResponse.data.url);
-        core.setOutput('releaseUploadURL', releaseResponse.data.upload_url);
-        core.setOutput('releaseAssetsURL', releaseResponse.data.assets_url);
         console.log(`Release finished`);
     } catch (error: any) {
         core.setFailed(error.message)

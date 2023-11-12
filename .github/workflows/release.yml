@@ -32,7 +32,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - id: hash
-      run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      env:
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+      run: | 
+        git fetch origin
+        echo "hash=$(git show origin/${BRANCH} --pretty=format:"%H")" >> $GITHUB_OUTPUT
     - name: Make release
       id: release
       uses: ./
