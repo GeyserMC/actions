@@ -115,12 +115,11 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
 async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo): Promise<Inputs.Change[]> {
     const { branch, defaultBranch } = repoData;
     let firstCommit = '';
-    let lastCommit = '';
+    let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
 
     if (prevRelease.commit == null) {
         if (branch === defaultBranch) {
             firstCommit = `${process.env.GITHUB_SHA!}^`;
-            lastCommit = process.env.GITHUB_SHA!;
         } else {
             const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
             try {
@@ -128,11 +127,9 @@ async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoDat
             } catch (error) {
                 firstCommit = `${process.env.GITHUB_SHA!}^`;
             }
-            lastCommit = process.env.GITHUB_SHA!;
         }
     } else {
         firstCommit = prevRelease.commit;
-        lastCommit = process.env.GITHUB_SHA!;
     }
 
     const changes: Inputs.Change[] = [];

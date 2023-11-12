@@ -39,6 +39,7 @@ Data about the previous release for each branch is stored under the `RELEASEACTI
 | `ghApiUrl`           | The GitHub API URL to use. Defaults to the api. plus the repo domain if not specified.                                                                 | `auto`  | `false`  |
 | `ghReleaseNotes`     | Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.                                                      | `false` | `false`  |
 | `includeReleaseInfo` | Whether or not to include the asset hashes in a release.json file. Defaults to true if not specified.                                                  | `true`  | `false`  |
+| `lastCommit`         | The last commit hash to use for the release. Defaults to the commit that triggered the workflow if not specified.                                      | `auto`  | `false`  |
 | `latestRelease`      | Whether or not the release should be marked as the latest release. Defaults to auto if not specified, which will be true unless this is a pre-release. | `auto`  | `false`  |
 | `preRelease`         | Whether or not the release is a pre-release. Inferred by the branch if not specified.                                                                  | `auto`  | `false`  |
 | `releaseBody`        | A file containing the body of the release. Defaults to the commit changelog if not specified.                                                          | `auto`  | `false`  |

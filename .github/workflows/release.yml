@@ -31,6 +31,9 @@ jobs:
         branch: ${{ github.head_ref || github.ref_name }}
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - id: hash
+      run: echo ::set-output name=hash::$(git rev-parse HEAD)
     - name: Make release
       id: release
       uses: ./
@@ -39,6 +42,7 @@ jobs:
           dist/index.js
         appID: ${{ secrets.RELEASE_APP_ID }}
         appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
+        lastCommit: ${{ steps.hash.outputs.hash }}
 
   upload-logs:
     name: Upload Logs
