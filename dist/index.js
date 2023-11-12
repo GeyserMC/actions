@@ -63120,7 +63120,10 @@ const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
 const request_1 = __nccwpck_require__(6234);
 async function authGithubApp(baseRepoData) {
     const { owner, repo, branch, url } = baseRepoData;
-    const apiUrl = core.getInput('url').replace(/\/$/, '');
+    let apiUrl = core.getInput('url');
+    if (apiUrl === 'auto') {
+        apiUrl = url.replace('https://', 'https://api.');
+    }
     const appId = core.getInput('appID', { required: true });
     const appPrivateKey = core.getInput('appPrivateKey', { required: true });
     const privateKey = crypto_1.default.createPrivateKey(appPrivateKey).export({ type: 'pkcs8', format: 'pem' }).toString();

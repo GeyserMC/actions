@@ -1,8 +1,8 @@
 {
-    "name": "release-action",
+    "name": "base-release-action",
     "version": "0.0.0",
     "description": "An action to create incremented releases in a similar style to Jenkins ",
-    "repository": "https://github.com/Kas-tle/release-action.git",
+    "repository": "https://github.com/Kas-tle/base-release-action.git",
     "author": "Joshua Castle <packages@kastle.dev",
     "license": " AGPL-3.0-only",
     "exports": {

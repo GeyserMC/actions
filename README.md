@@ -1,4 +1,4 @@
-# release-action
+# base-release-action
 An action to create incremented releases in a similar style to Jenkins
 
 ## Usage
@@ -16,7 +16,7 @@ Data about the previous release for each branch is stored under the `RELEASEACTI
 ### Minimal Configuration
 
 ```yaml
-- uses: Kas-tle/release-action@1.0.0
+- uses: Kas-tle/base-release-action@1.0.0
   if: always() # If you wish to run even when previous steps have failed
   with:
     files: | # Newline-separated list of files to upload with optional "label:" prefix
