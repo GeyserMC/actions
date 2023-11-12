@@ -32,7 +32,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - id: hash
-      run: echo "hash=$(git rev-parse `git branch -r --sort=committerdate | tail -1`)" >> $GITHUB_OUTPUT
+      run: |
+        git fetch origin 
+        echo "hash=$(git rev-parse `git branch -r --sort=committerdate | tail -1`)" >> $GITHUB_OUTPUT
     - name: Make release
       id: release
       uses: ./

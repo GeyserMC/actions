@@ -22,6 +22,7 @@ async function run(): Promise<void> {
 
         console.log(`Release finished`);
     } catch (error: any) {
+        console.log(error.message);
         core.setFailed(error.message)
     }
 }
