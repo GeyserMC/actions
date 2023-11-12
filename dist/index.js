@@ -63311,6 +63311,7 @@ const store_1 = __nccwpck_require__(7575);
 const files_1 = __nccwpck_require__(2159);
 const auth_1 = __nccwpck_require__(2912);
 const hook_1 = __nccwpck_require__(8408);
+const output_1 = __nccwpck_require__(63);
 async function run() {
     try {
         const baseRepoData = (0, repo_1.getRepoData)();
@@ -63320,11 +63321,7 @@ async function run() {
         await (0, store_1.storeReleaseData)(inputs, octokit, repoData);
         await (0, files_1.uploadFiles)(octokit, inputs, releaseResponse, repoData);
         await (0, hook_1.sendWebhook)(inputs, octokit, repoData, releaseResponse);
-        core.setOutput('releaseID', releaseResponse.data.id.toString());
-        core.setOutput('releaseBrowserURL', releaseResponse.data.html_url);
-        core.setOutput('releaseAPIURL', releaseResponse.data.url);
-        core.setOutput('releaseUploadURL', releaseResponse.data.upload_url);
-        core.setOutput('releaseAssetsURL', releaseResponse.data.assets_url);
+        (0, output_1.setOutputs)(releaseResponse);
         console.log(`Release finished`);
     }
     catch (error) {
@@ -63860,6 +63857,49 @@ function getMakeLatest(prerelease, success) {
     }
     return make_latest;
 }
+
+
+/***/ }),
+
+/***/ 63:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setOutputs = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+function setOutputs(release) {
+    core.setOutput('releaseID', release.data.id.toString());
+    core.setOutput('releaseBrowserURL', release.data.html_url);
+    core.setOutput('releaseAPIURL', release.data.url);
+    core.setOutput('releaseUploadURL', release.data.upload_url);
+    core.setOutput('releaseAssetsURL', release.data.assets_url);
+}
+exports.setOutputs = setOutputs;
 
 
 /***/ }),
