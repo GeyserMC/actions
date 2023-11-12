@@ -45,7 +45,6 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
             owner,
             repo,
             release_id: release.data.id,
-            url: release.data.upload_url,
             name,
             data: data as any,
         });
@@ -90,7 +89,6 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
         repo,
         branch,
         id: release.data.id.toString(),
-        url: release.data.html_url,
         build: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
         tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
         timestamp: Date.now().toString(),
@@ -112,7 +110,6 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
         owner,
         repo,
         release_id: release.data.id,
-        url: release.data.upload_url,
         name,
         data: Readable.from(data) as any,
     });
