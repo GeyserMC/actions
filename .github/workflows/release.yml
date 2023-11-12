@@ -16,6 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+    - uses: actions/setup-node@ee36e8b5c0fdd6014a0398aed18ce9876360bd63
+      with:
+        node-version: 20
     - name: Build and package
       run: |
         yarn
