@@ -63321,7 +63321,7 @@ async function run() {
         await (0, store_1.storeReleaseData)(inputs, octokit, repoData);
         await (0, files_1.uploadFiles)(octokit, inputs, releaseResponse, repoData);
         await (0, hook_1.sendWebhook)(inputs, octokit, repoData, releaseResponse);
-        (0, output_1.setOutputs)(releaseResponse);
+        await (0, output_1.setOutputs)(releaseResponse);
         console.log(`Release finished`);
     }
     catch (error) {
@@ -63892,7 +63892,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setOutputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-function setOutputs(release) {
+async function setOutputs(release) {
     core.setOutput('releaseID', release.data.id.toString());
     core.setOutput('releaseBrowserURL', release.data.html_url);
     core.setOutput('releaseAPIURL', release.data.url);
