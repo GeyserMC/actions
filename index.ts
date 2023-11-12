@@ -18,7 +18,7 @@ async function run(): Promise<void> {
         await storeReleaseData(inputs, octokit, repoData);
         await uploadFiles(octokit, inputs, releaseResponse, repoData);
         await sendWebhook(inputs, octokit, repoData, releaseResponse);
-        setOutputs(releaseResponse);
+        await setOutputs(releaseResponse);
 
         console.log(`Release finished`);
     } catch (error: any) {
