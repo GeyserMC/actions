@@ -63325,6 +63325,7 @@ async function run() {
         console.log(`Release finished`);
     }
     catch (error) {
+        console.log(error.message);
         core.setFailed(error.message);
     }
 }
