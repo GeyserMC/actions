@@ -63739,11 +63739,10 @@ async function getTag(repoData, prevRelease) {
 async function getChanges(api, prevRelease, repoData) {
     const { branch, defaultBranch } = repoData;
     let firstCommit = '';
-    let lastCommit = '';
+    let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA : core.getInput('lastCommit');
     if (prevRelease.commit == null) {
         if (branch === defaultBranch) {
             firstCommit = `${process.env.GITHUB_SHA}^`;
-            lastCommit = process.env.GITHUB_SHA;
         }
         else {
             const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
@@ -63753,12 +63752,10 @@ async function getChanges(api, prevRelease, repoData) {
             catch (error) {
                 firstCommit = `${process.env.GITHUB_SHA}^`;
             }
-            lastCommit = process.env.GITHUB_SHA;
         }
     }
     else {
         firstCommit = prevRelease.commit;
-        lastCommit = process.env.GITHUB_SHA;
     }
     const changes = [];
     const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999 });
