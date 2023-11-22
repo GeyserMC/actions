@@ -5,13 +5,14 @@ import { Repo } from "../types/repo";
 import { isDeepStrictEqual } from 'util';
 
 export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo) {
-    let updated = await checkStoreReleaseData(inputs, api, repoData);
+    const lastCommit = inputs.changes[inputs.changes.length - 1].commit;
+    let updated = await checkStoreReleaseData(inputs, api, repoData, lastCommit);
 
     let retries = 0;
     while (!updated && retries < 10) {
         console.log(`Previous release data not updated, retrying in 5 seconds...`);
         await new Promise(resolve => setTimeout(resolve, 5000));
-        updated = await checkStoreReleaseData(inputs, api, repoData);
+        updated = await checkStoreReleaseData(inputs, api, repoData, lastCommit);
         retries++;
 
         if (retries === 10) {
@@ -19,13 +20,13 @@ export async function storeReleaseData(inputs: Inputs, api: OctokitApi, repoData
         }
     }
 
-    console.log(`Updated previous commit ${process.env.GITHUB_SHA!}`);
+    console.log(`Updated previous commit ${lastCommit}`);
     console.log(`Updated previous base tag to ${inputs.tag.base}`);
 }
 
-async function checkStoreReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<boolean> {
+async function checkStoreReleaseData(inputs: Inputs, api: OctokitApi, repoData: Repo, lastCommit: string): Promise<boolean> {
     const { owner, repo, branch } = repoData;
-    const newEntry = { c: process.env.GITHUB_SHA!, t: inputs.tag.base };
+    const newEntry = { c: lastCommit, t: inputs.tag.base };
 
     const variable = 'releaseAction_prevRelease';
     const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });

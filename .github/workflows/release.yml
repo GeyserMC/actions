@@ -51,7 +51,7 @@ jobs:
     needs: release
 
     steps:
-    - uses: Kas-tle/release-build-log-action@46873b93db54b63e3d412ff7be96261c3593674c
+    - uses: Kas-tle/release-build-log-action@1b57448eaf9476e6e05450e4ea240449eac2c0d2
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         releaseID: ${{ needs.release.outputs.release_id }}

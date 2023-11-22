@@ -119,13 +119,13 @@ async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoDat
 
     if (prevRelease.commit == null) {
         if (branch === defaultBranch) {
-            firstCommit = `${process.env.GITHUB_SHA!}^`;
+            firstCommit = `${lastCommit}^`;
         } else {
             const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
             try {
                 firstCommit = `${compareReponse.data.commits[0].sha}^`;
             } catch (error) {
-                firstCommit = `${process.env.GITHUB_SHA!}^`;
+                firstCommit = `${lastCommit}^`;
             }
         }
     } else {
