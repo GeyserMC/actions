@@ -26,6 +26,14 @@ Data about the previous release for each branch is stored under the `RELEASEACTI
     appPrivateKey: ${{ secrets.RELEASE_APP_PK }} # The private key of the GitHub App in PEM format
 ```
 
+Note that when using the `push` trigger, given this action creates a tag using a bot token, GitHub will retrigger this action since that is considered a push event. This is, of course, generally not the desired outcome. This can be avoided by specifying that the action should only run on push to branches:
+```yaml
+on:
+  push:
+    branches:
+      - "*"
+```
+
 ### Inputs
 
 | Input                | Description                                                                                                                                            | Default | Required |
