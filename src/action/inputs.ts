@@ -69,9 +69,10 @@ async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs
     const make_latest = getMakeLatest(prerelease, success);
     const info = core.getBooleanInput('includeReleaseInfo');
     const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
+    const enabled = core.getBooleanInput('releaseEnabled');
 
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled };
 }
 
 async function getSuccess(api: OctokitApi, repoData: Repo): Promise<boolean> {

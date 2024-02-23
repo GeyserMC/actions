@@ -5,7 +5,11 @@ import { ReleaseResponse } from '../types/release';
 import { Repo } from '../types/repo';
 import { OctokitApi } from '../types/auth';
 
-export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Repo, releaseResponse: ReleaseResponse) {
+export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Repo, releaseResponse: ReleaseResponse | null) {
+    if (!releaseResponse) {
+        return;
+    }
+
     if (!inputs.release.hook) {
         return;
     }

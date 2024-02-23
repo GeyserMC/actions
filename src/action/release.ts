@@ -3,7 +3,11 @@ import { Inputs } from '../types/inputs';
 import { ReleaseResponse } from '../types/release';
 import { Repo } from '../types/repo';
 
-export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse> {
+export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse | null> {
+    if (!inputs.release.enabled) {
+        return null;
+    }
+
     const { owner, repo, branch } = repoData;
 
     const tag_name = inputs.tag.prefix + inputs.tag.separator + inputs.tag.base;

@@ -9,7 +9,11 @@ import { UploadInfo } from "../types/files";
 import { Readable } from "stream";
 import { OctokitApi } from "../types/auth";
 
-export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo) {
+export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse | null, repoData: Repo) {
+    if (!release) {
+        return;
+    }
+
     const uploads = await uploadProvidedFiles(api, inputs, release, repoData);
 
     if (!inputs.release.info) {

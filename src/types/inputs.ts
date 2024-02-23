@@ -29,6 +29,7 @@ export namespace Inputs {
     }
 
     export interface Release {
+        readonly enabled: boolean;
         readonly name: string;
         readonly body: string;
         readonly prerelease: boolean;
