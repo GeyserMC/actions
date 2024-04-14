@@ -1,31 +1,37 @@
 import path from "path";
 import fs from "fs";
-import crypto from 'crypto';
 import * as parse from "../util/parse";
 import { Inputs } from "../types/inputs";
 import { ReleaseResponse } from "src/types/release";
 import { Repo } from "src/types/repo";
-import { UploadInfo } from "../types/files";
+import { FileInfo, UploadInfo } from "../types/files";
 import { Readable } from "stream";
 import { OctokitApi } from "../types/auth";
 
-export async function uploadFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse | null, repoData: Repo) {
+export async function uploadFiles(inp: {api: OctokitApi, inputs: Inputs, release: ReleaseResponse | null, repoData: Repo}) {
+    const { api, inputs, release, repoData } = inp;
+
+    if (inputs.release.metadata) {
+        await saveOfflineMetadata({inputs, repoData});
+    }
+
     if (!release) {
         return;
     }
 
-    const uploads = await uploadProvidedFiles(api, inputs, release, repoData);
+    const uploads = await uploadProvidedFiles({api, inputs, release, repoData});
 
     if (!inputs.release.info) {
         return;
     }
 
-    await uploadReleaseData(api, inputs, release, repoData, uploads);
+    await uploadReleaseData({api, inputs, release, repoData, uploads});
 
     return;
 }
 
-async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo): Promise<Record<string, UploadInfo>> {
+async function uploadProvidedFiles(inp: {api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo}): Promise<Record<string, UploadInfo>> {
+    const { api, inputs, release, repoData } = inp;
     const { owner, repo } = repoData;
     const { files } = inputs;
     const uploads: Record<string, UploadInfo> = {};
@@ -57,15 +63,7 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
             continue next;
         }
 
-        const hashSha256 = (filePath: string) => new Promise<string>((resolve, reject) => {
-            const hash = crypto.createHash('sha256')
-            const rs = fs.createReadStream(filePath);
-            rs.on('error', reject)
-            rs.on('data', chunk => hash.update(chunk))
-            rs.on('end', () => resolve(hash.digest('hex')))
-        })
-
-        const sha256 = await hashSha256(file.path);
+        const sha256 = await parse.hashSha256(file.path);
 
         const info: UploadInfo = {
             name,
@@ -85,7 +83,9 @@ async function uploadProvidedFiles(api: OctokitApi, inputs: Inputs, release: Rel
     return uploads;
 }
 
-async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo, uploads: Record<string, UploadInfo>) {
+async function uploadReleaseData(inp: {api: OctokitApi, inputs: Inputs, release: ReleaseResponse, repoData: Repo, uploads: Record<string, UploadInfo>}) {
+    const { api, inputs, release, repoData, uploads } = inp;
+
     const { owner, repo, branch } = repoData;
 
     const releaseData = {
@@ -119,4 +119,43 @@ async function uploadReleaseData(api: OctokitApi, inputs: Inputs, release: Relea
     });
 
     console.log(`Uploaded release data to ${release.data.html_url}`);
+}
+
+async function saveOfflineMetadata(inp: {inputs: Inputs, repoData: Repo}) {
+    const { inputs, repoData } = inp;
+
+    const { owner, repo, branch } = repoData;
+
+    const downloads: Record<string, FileInfo> = {};
+
+    for (const file of inputs.files) {
+        if (!fs.existsSync(file.path)) {
+            console.log(`File ${file.path} does not exist, skipping`);
+            continue;
+        }
+
+        const name = path.basename(file.path);
+        const sha256 = await parse.hashSha256(file.path);
+        downloads[file.label] = {
+            name,
+            sha256
+        };
+    }
+
+    const metadata = {
+        owner,
+        repo,
+        branch,
+        build: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
+        tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
+        timestamp: Date.now().toString(),
+        prerelease: inputs.release.prerelease,
+        changes: inputs.changes,
+        downloads
+    };
+
+    const data = Buffer.from(JSON.stringify(metadata, null, 4), 'utf8');
+    fs.writeFileSync('metadata.json', data);
+
+    console.log(`Saved metadata to metadata.json`);
 }

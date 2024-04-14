@@ -2,7 +2,9 @@ import * as core from '@actions/core'
 import { ReleaseResponse } from "../types/release";
 import { Inputs } from '../types/inputs';
 
-export async function setOutputs(release: ReleaseResponse | null, inputs: Inputs): Promise<void> {
+export async function setOutputs(inp: {release: ReleaseResponse | null, inputs: Inputs}): Promise<void> {
+    const { release, inputs } = inp;
+    
     if (release) {
         core.setOutput('releaseID', release.data.id.toString());
         core.setOutput('releaseBrowserURL', release.data.html_url);

@@ -7,8 +7,8 @@ import { OctokitApi } from '../types/auth';
 import { BaseRepo, Repo } from '../types/repo';
 import { request } from "@octokit/request"
 
-export async function authGithubApp(baseRepoData: BaseRepo): Promise<{octokit: OctokitApi, repoData: Repo}> {
-    const { owner, repo, branch, url } = baseRepoData;
+export async function authGithubApp(inp: {baseRepoData: BaseRepo}): Promise<{octokit: OctokitApi, repoData: Repo}> {
+    const { owner, repo, branch, url } = inp.baseRepoData;
     let apiUrl = core.getInput('url');
     if (apiUrl === 'auto') {
         apiUrl = url.replace('https://', 'https://api.');

@@ -8,20 +8,24 @@ import path from 'path';
 import { OctokitApi } from '../types/auth';
 import markdownEscape from 'markdown-escape';
 
-export async function getInputs(api: OctokitApi, repoData: Repo): Promise<Inputs> {
-    const prevRelease: PreviousRelease = await getPrevRelease(api, repoData);
+export async function getInputs(inp: {api: OctokitApi, repoData: Repo}): Promise<Inputs> {
+    const { api, repoData } = inp;
+
+    const prevRelease: PreviousRelease = await getPrevRelease({api, repoData});
 
     const files = getFiles();
-    const changes = await getChanges(api, prevRelease, repoData);
-    const tag = await getTag(repoData, prevRelease);
-    const success = await getSuccess(api, repoData);
-    const release = await getRelease(api, changes, tag, repoData, success);
+    const changes = await getChanges({api, prevRelease, repoData});
+    const tag = await getTag({repoData, prevRelease});
+    const success = await getSuccess({api, repoData});
+    const release = await getRelease({api, changes, tag, repoData, success});
 
     console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
     return { files, changes, tag, release, success };
 }
 
-async function getPrevRelease(api: OctokitApi, repoData: Repo): Promise<PreviousRelease> {
+async function getPrevRelease(inp: {api: OctokitApi, repoData: Repo}): Promise<PreviousRelease> {
+    const { api, repoData } = inp;
+
     const { owner, repo, branch } = repoData;
     const variable = 'releaseAction_prevRelease';
 
@@ -57,25 +61,30 @@ function getFiles(): Inputs.File[] {
     });
 }
 
-async function getRelease(api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo, success: boolean): Promise<Inputs.Release> {
+async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo, success: boolean}): Promise<Inputs.Release> {
+    const { api, changes, tag, repoData, success } = inp;
+
     const { owner, repo, branch } = repoData;
 
-    const body = await getReleaseBody(repoData, changes);
-    const prerelease = await getPreRelease(repoData);
-    const name = getName(tag, branch);
+    const body = await getReleaseBody({repoData, changes});
+    const prerelease = await getPreRelease({repoData});
+    const name = getName({tag, branch});
     const draft = core.getBooleanInput('draftRelease');
     const generate_release_notes = core.getBooleanInput('ghReleaseNotes');
-    const discussion_category_name = await getDiscussionCategory(api, owner, repo);
-    const make_latest = getMakeLatest(prerelease, success);
+    const discussion_category_name = await getDiscussionCategory({api, owner, repo});
+    const make_latest = getMakeLatest({prerelease, success});
     const info = core.getBooleanInput('includeReleaseInfo');
     const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
     const enabled = core.getBooleanInput('releaseEnabled');
+    const metadata = core.getBooleanInput('saveMetadata');
 
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata };
 }
 
-async function getSuccess(api: OctokitApi, repoData: Repo): Promise<boolean> {
+async function getSuccess(inp: {api: OctokitApi, repoData: Repo}): Promise<boolean> {
+    const { api, repoData } = inp;
+
     const { owner, repo } = repoData;
 
     const runID = process.env.GITHUB_RUN_ID!;
@@ -85,7 +94,9 @@ async function getSuccess(api: OctokitApi, repoData: Repo): Promise<boolean> {
 
     return success;
 }
-async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inputs.Tag> {
+async function getTag(inp: {repoData: Repo, prevRelease: PreviousRelease}): Promise<Inputs.Tag> {
+    const { repoData, prevRelease } = inp;
+
     const { branch } = repoData;
 
     const base = core.getInput('tagBase');
@@ -113,7 +124,9 @@ async function getTag(repoData: Repo, prevRelease: PreviousRelease): Promise<Inp
     return { base, prefix, separator, increment };
 }
 
-async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo): Promise<Inputs.Change[]> {
+async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo}): Promise<Inputs.Change[]> {
+    const { api, prevRelease, repoData } = inp;
+
     const { branch, defaultBranch } = repoData;
     let firstCommit = '';
     let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
@@ -157,7 +170,9 @@ async function getChanges(api: OctokitApi, prevRelease: PreviousRelease, repoDat
     return changes;
 }
 
-async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise<string> {
+async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): Promise<string> {
+    const { repoData, changes } = inp;
+
     const bodyPath = core.getInput('releaseBodyPath');
 
     if (!fs.existsSync(bodyPath)) {
@@ -205,7 +220,9 @@ async function getReleaseBody(repoData: Repo, changes: Inputs.Change[]): Promise
     return fs.readFileSync(bodyPath, { encoding: 'utf-8' });
 }
 
-async function getPreRelease(repoData: Repo): Promise<boolean> {
+async function getPreRelease(inp: {repoData: Repo}): Promise<boolean> {
+    const { repoData } = inp;
+
     const { branch, defaultBranch } = repoData;
 
     const preRelease = core.getInput('preRelease');
@@ -217,7 +234,9 @@ async function getPreRelease(repoData: Repo): Promise<boolean> {
     return preRelease === 'true';
 }
 
-function getName(tag: Inputs.Tag, branch: string): string {
+function getName(inp: {tag: Inputs.Tag, branch: string}): string {
+    const { tag, branch } = inp;
+
     const name = core.getInput('releaseName')
         .replace('${tagBase}', tag.base)
         .replace('${tagPrefix}', tag.prefix)
@@ -231,7 +250,7 @@ function getName(tag: Inputs.Tag, branch: string): string {
     return name;
 }
 
-async function getDiscussionCategory(_api: OctokitApi, _owner: string, _repo: string): Promise<string | undefined> {
+async function getDiscussionCategory(inp: {api: OctokitApi, owner: string, repo: string}): Promise<string | undefined> {
     const category = core.getInput('discussionCategory');
 
     // Currently the api to create one if it doesn't exist is not available
@@ -244,7 +263,9 @@ async function getDiscussionCategory(_api: OctokitApi, _owner: string, _repo: st
     return category;
 }
 
-function getMakeLatest(prerelease: boolean, success: boolean): "true" | "false" | "legacy" | undefined {
+function getMakeLatest(inp: {prerelease: boolean, success: boolean}): "true" | "false" | "legacy" | undefined {
+    const { prerelease, success } = inp;
+
     if (!success) {
         return "false";
     }

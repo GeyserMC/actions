@@ -5,7 +5,9 @@ import { ReleaseResponse } from '../types/release';
 import { Repo } from '../types/repo';
 import { OctokitApi } from '../types/auth';
 
-export async function sendWebhook(inputs: Inputs, api: OctokitApi, repoData: Repo, releaseResponse: ReleaseResponse | null) {
+export async function sendWebhook(inp: {inputs: Inputs, api: OctokitApi, repoData: Repo, releaseResponse: ReleaseResponse | null}) {
+    const { inputs, api, repoData, releaseResponse } = inp;
+    
     if (!releaseResponse) {
         return;
     }

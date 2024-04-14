@@ -54,6 +54,7 @@ on:
 | `releaseChangeLimit` | The maximum number of changes to include in the release body. Defaults to 15 if not specified. Set to -1 to include all changes.                       | `15`    | `false`  |
 | `releaseEnabled`     | Whether or not the release should be created. Defaults to true if not specified.                                                                       | `true`  | `false`  |
 | `releaseName`        | The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.                                                                 | `auto`  | `false`  |
+| `saveMetadata`       | Whether or not to save the offline release metadata to metadata.json. Defaults to false if not specified.                                              | `false` | `false`  |
 | `tagBase`            | The tag base to use for the release. Auto increment from the last tag will be used if not specified.                                                   | `auto`  | `false`  |
 | `tagIncrement`       | If the build tag should be incremented. Defaults to true if not specified and tag is a number.                                                         | `true`  | `false`  |
 | `tagPrefix`          | The prefix to use for the tag. Defaults to the branch if not specified.                                                                                | `auto`  | `false`  |

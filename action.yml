@@ -63,6 +63,10 @@ inputs:
         description: 'The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.'
         required: false
         default: 'auto'
+    saveMetadata:
+        description: 'Whether or not to save the offline release metadata to metadata.json. Defaults to false if not specified.'
+        required: false
+        default: 'false'
     tagBase: 
         description: 'The tag base to use for the release. Auto increment from the last tag will be used if not specified.'
         required: false

@@ -11,14 +11,14 @@ import { setOutputs } from './src/action/output';
 async function run(): Promise<void> {
     try {
         const baseRepoData = getRepoData();
-        const { octokit, repoData } = await authGithubApp(baseRepoData);
+        const { octokit, repoData } = await authGithubApp({baseRepoData});
 
-        const inputs = await getInputs(octokit, repoData);
-        const releaseResponse = await writeRelease(inputs, octokit, repoData);
-        await storeReleaseData(inputs, octokit, repoData);
-        await uploadFiles(octokit, inputs, releaseResponse, repoData);
-        await sendWebhook(inputs, octokit, repoData, releaseResponse);
-        await setOutputs(releaseResponse, inputs);
+        const inputs = await getInputs({api: octokit, repoData});
+        const releaseResponse = await writeRelease({inputs, api: octokit, repoData});
+        await storeReleaseData({inputs, api: octokit, repoData});
+        await uploadFiles({api: octokit, inputs, release: releaseResponse, repoData});
+        await sendWebhook({inputs, api: octokit, repoData, releaseResponse});
+        await setOutputs({release: releaseResponse, inputs});
 
         console.log(`Release finished`);
     } catch (error: any) {

@@ -3,7 +3,9 @@ import { Inputs } from '../types/inputs';
 import { ReleaseResponse } from '../types/release';
 import { Repo } from '../types/repo';
 
-export async function writeRelease(inputs: Inputs, api: OctokitApi, repoData: Repo): Promise<ReleaseResponse | null> {
+export async function writeRelease(inp: {inputs: Inputs, api: OctokitApi, repoData: Repo}): Promise<ReleaseResponse | null> {
+    const { inputs, api, repoData } = inp;
+    
     if (!inputs.release.enabled) {
         return null;
     }

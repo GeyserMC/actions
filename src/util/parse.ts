@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import fs from "fs";
 
 export function parseMultiInput(input: string): string[] {
     let result: string[];
@@ -39,3 +40,11 @@ export function isPosInteger(value: string): boolean {
 export function stringHash(string: string): string {
     return crypto.createHash('sha256').update(string).digest('hex').slice(0, 7);
 }
+
+export const hashSha256 = (filePath: string) => new Promise<string>((resolve, reject) => {
+    const hash = crypto.createHash('sha256')
+    const rs = fs.createReadStream(filePath);
+    rs.on('error', reject)
+    rs.on('data', chunk => hash.update(chunk))
+    rs.on('end', () => resolve(hash.digest('hex')))
+})
