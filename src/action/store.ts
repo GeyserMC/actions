@@ -7,6 +7,10 @@ import { isDeepStrictEqual } from 'util';
 export async function storeReleaseData(inp: {inputs: Inputs, api: OctokitApi, repoData: Repo}) {
     const { inputs, api, repoData } = inp;
 
+    if (!inputs.release.update_release_data) {
+        return;
+    }
+
     const lastCommit = inputs.changes[inputs.changes.length - 1].commit;
     let updated = await checkStoreReleaseData({inputs, api, repoData, lastCommit});
 

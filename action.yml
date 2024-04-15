@@ -83,6 +83,10 @@ inputs:
         description: 'The separator to use between the tag prefix and the tag base. Defaults to "-" if not specified.'
         required: false
         default: '-'
+    updateReleaseData:
+        description: 'Whether or not to update the release data in repository variable storage.'
+        required: false
+        default: 'true'
 
 outputs:
     releaseID:

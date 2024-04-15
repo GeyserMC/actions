@@ -40,6 +40,7 @@ export namespace Inputs {
         readonly info: boolean;
         readonly hook: string | undefined;
         readonly metadata: boolean;
+        readonly update_release_data: boolean;
     }
 }
 
