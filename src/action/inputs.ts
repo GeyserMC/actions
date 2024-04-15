@@ -132,43 +132,48 @@ async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, r
     let firstCommit = '';
     let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
 
-    if (prevRelease.commit == null) {
-        if (branch === defaultBranch) {
-            firstCommit = `${lastCommit}^`;
-        } else {
-            const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
-            try {
-                firstCommit = `${compareReponse.data.commits[0].sha}^`;
-            } catch (error) {
+    try {
+        if (prevRelease.commit == null) {
+            if (branch === defaultBranch) {
                 firstCommit = `${lastCommit}^`;
+            } else {
+                const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: defaultBranch, head: branch });
+                try {
+                    firstCommit = `${compareReponse.data.commits[0].sha}^`;
+                } catch (error) {
+                    firstCommit = `${lastCommit}^`;
+                }
             }
+        } else {
+            firstCommit = prevRelease.commit;
         }
-    } else {
-        firstCommit = prevRelease.commit;
+    
+        const changes: Inputs.Change[] = [];
+    
+        const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999 });
+        const commits = compareReponse.data.commits;
+    
+        for (const c of commits) {
+            const commit = c.sha;
+            const summary = c.commit.message.split('\n')[0];
+            const message = c.commit.message;
+            const timestamp = c.commit.committer && c.commit.committer.date ? new Date(c.commit.committer.date).getTime().toString() : '';
+            const author = c.author ? c.author.login : '';
+            const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)
+                ?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1'))
+                .filter((value, index, array) => array.indexOf(value) === index)
+                .filter(coauthor => coauthor !== '') ?? [];
+    
+            changes.push({ commit, summary, message, timestamp, author, coauthors });
+        }
+    
+        console.log('');
+        console.log(`Found ${changes.length} changes in commit range ${firstCommit}...${lastCommit}`);
+        return changes;
+    } catch (error) {
+        console.log(`Using empty changes as they could not be found.`);
+        return [];
     }
-
-    const changes: Inputs.Change[] = [];
-
-    const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999 });
-    const commits = compareReponse.data.commits;
-
-    for (const c of commits) {
-        const commit = c.sha;
-        const summary = c.commit.message.split('\n')[0];
-        const message = c.commit.message;
-        const timestamp = c.commit.committer && c.commit.committer.date ? new Date(c.commit.committer.date).getTime().toString() : '';
-        const author = c.author ? c.author.login : '';
-        const coauthors = c.commit.message.match(/Co-authored-by: (.*) <(.*)>/g)
-            ?.map(coauthor => coauthor.replace(/Co-authored-by: (.*) <(.*)>/, '$1'))
-            .filter((value, index, array) => array.indexOf(value) === index)
-            .filter(coauthor => coauthor !== '') ?? [];
-
-        changes.push({ commit, summary, message, timestamp, author, coauthors });
-    }
-
-    console.log('');
-    console.log(`Found ${changes.length} changes in commit range ${firstCommit}...${lastCommit}`);
-    return changes;
 }
 
 async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): Promise<string> {
@@ -178,6 +183,10 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): 
 
     if (!fs.existsSync(bodyPath)) {
         // Generate release body ourselves
+        if (changes.length === 0) {
+            return '';
+        }
+        
         const { owner, repo, url } = repoData;
         const firstCommit = changes[0].commit.slice(0, 7);
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
