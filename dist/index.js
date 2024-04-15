@@ -91642,8 +91642,9 @@ async function getRelease(inp) {
     const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
     const enabled = core.getBooleanInput('releaseEnabled');
     const metadata = core.getBooleanInput('saveMetadata');
+    const update_release_data = core.getBooleanInput('updateReleaseData');
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata, update_release_data };
 }
 async function getSuccess(inp) {
     const { api, repoData } = inp;
@@ -91961,6 +91962,9 @@ const core_1 = __importDefault(__nccwpck_require__(42186));
 const util_1 = __nccwpck_require__(73837);
 async function storeReleaseData(inp) {
     const { inputs, api, repoData } = inp;
+    if (!inputs.release.update_release_data) {
+        return;
+    }
     const lastCommit = inputs.changes[inputs.changes.length - 1].commit;
     let updated = await checkStoreReleaseData({ inputs, api, repoData, lastCommit });
     let retries = 0;
