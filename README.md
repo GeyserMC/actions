@@ -1,5 +1,5 @@
 # base-release-action
-An action to create incremented releases in a similar style to Jenkins
+You can join the [Discord](https://discord.gg/5z4GuSnqmQ) for help with this project. An action to create incremented releases in a similar style to Jenkins
 
 ## Usage
 
