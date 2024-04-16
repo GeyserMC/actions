@@ -1,6 +1,5 @@
 import { Embed, Webhook } from '@vermaysha/discord-webhook'
 import { Inputs } from '../types/inputs';
-import ogs from 'open-graph-scraper';
 import { ReleaseResponse } from '../types/release';
 import { Repo } from '../types/repo';
 import { OctokitApi } from '../types/auth';
@@ -21,14 +20,9 @@ export async function sendWebhook(inp: {inputs: Inputs, api: OctokitApi, repoDat
     const failed = !inputs.success
     const color = failed ? '#e00016' : (inputs.release.prerelease ? '#fcbe03' : '#03fc5a');
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
+    const tag = updatedRelease.data.tag_name;
 
-    let thumbnail: string | undefined = undefined;
-    try {
-        const thumbnails = (await ogs({ url: updatedRelease.data.html_url })).result.ogImage;
-        thumbnail = thumbnails && thumbnails.length > 0 ? thumbnails[0].url : undefined;
-    } catch (error) {
-        console.log('Could not get thumbnail for release');
-    }
+    const thumbnail= `https://opengraph.githubassets.com/1/${owner}/${repo}/releases/tag/${tag}`;
 
     let assets = '';
     for (const asset of updatedRelease.data.assets) {
@@ -39,7 +33,6 @@ export async function sendWebhook(inp: {inputs: Inputs, api: OctokitApi, repoDat
 
     const time = Math.floor(new Date(updatedRelease.data.created_at).getTime() / 1000);
     const author = updatedRelease.data.author.type === 'User' ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace('[bot]', '');
-    const tag = updatedRelease.data.tag_name;
     const sha = inputs.changes[inputs.changes.length - 1].commit.slice(0, 7);
     const statusEmoji = failed ? ':red_circle:' : ':green_circle:';
     const status = failed ? 'Failed' : 'Success';

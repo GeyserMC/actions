@@ -44,6 +44,7 @@ jobs:
         appID: ${{ secrets.RELEASE_APP_ID }}
         appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
         lastCommit: ${{ steps.hash.outputs.hash }}
+        discordWebhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   upload-logs:
     name: Upload Logs
