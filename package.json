@@ -1,6 +1,6 @@
 {
     "name": "base-release-action",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "An action to create incremented releases in a similar style to Jenkins",
     "repository": "https://github.com/Kas-tle/base-release-action.git",
     "author": "Joshua Castle <packages@kastle.dev>",

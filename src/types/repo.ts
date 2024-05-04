@@ -7,4 +7,5 @@ export interface BaseRepo {
 
 export interface Repo extends BaseRepo {
     readonly defaultBranch: string;
+    readonly lastCommit: string;
 }

@@ -11,7 +11,7 @@ export async function storeReleaseData(inp: {inputs: Inputs, api: OctokitApi, re
         return;
     }
 
-    const lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
+    const { lastCommit } = repoData;
     let updated = await checkStoreReleaseData({inputs, api, repoData, lastCommit});
 
     let retries = 0;

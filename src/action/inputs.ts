@@ -128,9 +128,8 @@ async function getTag(inp: {repoData: Repo, prevRelease: PreviousRelease}): Prom
 async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo}): Promise<Inputs.Change[]> {
     const { api, prevRelease, repoData } = inp;
 
-    const { branch, defaultBranch } = repoData;
+    const { branch, defaultBranch, lastCommit } = repoData;
     let firstCommit = '';
-    let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
 
     try {
         if (prevRelease.commit == null) {

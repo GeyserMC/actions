@@ -36,7 +36,8 @@ export async function authGithubApp(inp: {baseRepoData: BaseRepo}): Promise<{oct
     const octokit = new RestOctokit({ auth: token, baseUrl: apiUrl });
 
     const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
+    const lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA! : core.getInput('lastCommit');
 
     console.log(`Successfully authenticated as GitHub app`);
-    return { octokit, repoData: { owner, repo, branch, defaultBranch, url } };
+    return { octokit, repoData: { owner, repo, branch, defaultBranch, url, lastCommit } };
 }
