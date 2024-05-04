@@ -40177,8 +40177,9 @@ async function authGithubApp(inp) {
     const token = await appOctokit.rest.apps.createInstallationAccessToken({ installation_id: installationID }).then(response => response.data.token);
     const octokit = new RestOctokit({ auth: token, baseUrl: apiUrl });
     const defaultBranch = await octokit.rest.repos.get({ owner, repo }).then(response => response.data.default_branch);
+    const lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA : core.getInput('lastCommit');
     console.log(`Successfully authenticated as GitHub app`);
-    return { octokit, repoData: { owner, repo, branch, defaultBranch, url } };
+    return { octokit, repoData: { owner, repo, branch, defaultBranch, url, lastCommit } };
 }
 exports.authGithubApp = authGithubApp;
 
@@ -40550,9 +40551,8 @@ async function getTag(inp) {
 }
 async function getChanges(inp) {
     const { api, prevRelease, repoData } = inp;
-    const { branch, defaultBranch } = repoData;
+    const { branch, defaultBranch, lastCommit } = repoData;
     let firstCommit = '';
-    let lastCommit = core.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA : core.getInput('lastCommit');
     try {
         if (prevRelease.commit == null) {
             if (branch === defaultBranch) {
@@ -40844,7 +40844,7 @@ async function storeReleaseData(inp) {
     if (!inputs.release.update_release_data) {
         return;
     }
-    const lastCommit = core_1.default.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA : core_1.default.getInput('lastCommit');
+    const { lastCommit } = repoData;
     let updated = await checkStoreReleaseData({ inputs, api, repoData, lastCommit });
     let retries = 0;
     while (!updated && retries < 10) {
