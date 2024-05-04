@@ -40844,7 +40844,7 @@ async function storeReleaseData(inp) {
     if (!inputs.release.update_release_data) {
         return;
     }
-    const lastCommit = inputs.changes[inputs.changes.length - 1].commit;
+    const lastCommit = core_1.default.getInput('lastCommit') === 'auto' ? process.env.GITHUB_SHA : core_1.default.getInput('lastCommit');
     let updated = await checkStoreReleaseData({ inputs, api, repoData, lastCommit });
     let retries = 0;
     while (!updated && retries < 10) {
