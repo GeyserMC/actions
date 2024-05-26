@@ -40,6 +40,7 @@ jobs:
       id: release
       uses: ./release/
       with:
+        files:
         appID: ${{ secrets.RELEASE_APP_ID }}
         appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
         lastCommit: ${{ steps.hash.outputs.hash }}
