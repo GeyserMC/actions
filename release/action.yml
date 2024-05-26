@@ -1,0 +1,131 @@
+name: release
+description: "An action to create incremented releases in a similar style to Jenkins."
+
+inputs:
+    appID:
+        description: 'ID of the GitHub App to manage the release system.'
+        required: true
+    appPrivateKey:
+        description: 'Private key of the GitHub App to manage the release system.'
+        required: true
+    files:
+        description: 'Comma-separated or newline-separated list of release files with optional "label:" prefix.'
+        required: true
+    discordWebhook:
+        description: 'Discord webhook to post the release to.'
+        required: false
+        default: 'none'
+    discussionCategory:
+        description: 'The category to use for the discussion. Defaults to "none" if not specified.'
+        required: false
+        default: 'none'
+    draftRelease:
+        description: 'Whether or not the release should be a draft. Defaults to false if not specified.'
+        required: false
+        default: 'false'
+    ghApiUrl:
+        description: 'The GitHub API URL to use. Defaults to the api. plus the repo domain if not specified.'
+        required: false
+        default: 'auto'
+    ghReleaseNotes:
+        description: 'Whether or not to let GitHub auto-generate its release notes. Defaults to false if not specified.'
+        required: false
+        default: 'false'
+    includeReleaseInfo:
+        description: 'Whether or not to include the asset hashes in a release.json file. Defaults to true if not specified.'
+        required: false
+        default: 'true'
+    lastCommit:
+        description: 'The last commit hash to use for the release. Defaults to the commit that triggered the workflow if not specified.'
+        required: false
+        default: 'auto'
+    latestRelease:
+        description: 'Whether or not the release should be marked as the latest release. Defaults to auto if not specified, which will be true unless this is a pre-release.'
+        required: false
+        default: 'auto'
+    preRelease:
+        description: 'Whether or not the release is a pre-release. Inferred by the branch if not specified.'
+        required: false
+        default: 'auto'
+    releaseBody:
+        description: 'A file containing the body of the release. Defaults to the commit changelog if not specified.'
+        required: false
+        default: 'auto'
+    releaseChangeLimit:
+        description: 'The maximum number of changes to include in the release body. Defaults to 15 if not specified. Set to -1 to include all changes.'
+        required: false
+        default: '15'
+    releaseChangePath:
+        description: 'The path from which to get the changes for the release body. Defaults to the root of the repository if not specified.'
+        required: false
+        default: ''
+    releaseEnabled:
+        description: 'Whether or not the release should be created. Defaults to true if not specified.'
+        required: false
+        default: 'true'
+    releaseName:
+        description: 'The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.'
+        required: false
+        default: 'auto'
+    releaseProject:
+        description: 'The project to use for the metadata of the release. Defaults to the lowercase repository name if not specified.'
+        required: false
+        default: 'auto'
+    releaseVersion:
+        description: 'The version of the release. Defaults to the tag if not specified.'
+        required: false
+        default: 'auto'
+    saveMetadata:
+        description: 'Whether or not to save the offline release metadata to metadata.json. Defaults to false if not specified.'
+        required: false
+        default: 'false'
+    tagBase: 
+        description: 'The tag base to use for the release. Auto increment from the last tag will be used if not specified.'
+        required: false
+        default: 'auto'
+    tagIncrement:
+        description: 'If the build tag should be incremented. Defaults to true if not specified and tag is a number.'
+        required: false
+        default: 'true'
+    tagPrefix:
+        description: 'The prefix to use for the tag. Defaults to the branch if not specified.'
+        required: false
+        default: 'auto'
+    tagSeparator:
+        description: 'The separator to use between the tag prefix and the tag base. Defaults to "-" if not specified.'
+        required: false
+        default: '-'
+    updateReleaseData:
+        description: 'Whether or not to update the release data in repository variable storage.'
+        required: false
+        default: 'true'
+
+outputs:
+    releaseID:
+        description: 'The ID of the release.'
+    releaseAPIURL:
+        description: 'The API URL of the release.'
+    releaseAssetsURL:
+        description: 'The asset URL for the release.'
+    releaseBrowserURL:
+        description: 'The browser URL of the release.'
+    body:
+        description: 'The body of the release.'
+    tag:
+        description: 'The tag of the release.'
+    tagBase:
+        description: 'The base of the tag of the release.'
+    tagPrefix:
+        description: 'The prefix of the tag of the release.'
+    tagSeparator:
+        description: 'The separator of the tag of the release.'
+    uploadAssetsURL:
+        description: 'The asset upload URL for the release.'
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
+
+branding:
+    icon: "tag"
+    color: "gray-dark"

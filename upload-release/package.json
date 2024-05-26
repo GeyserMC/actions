@@ -1,0 +1,21 @@
+{
+    "name": "upload-release",
+    "private": true,
+    "version": "1.0.0",
+    "description": "An action to upload releases via SCP",
+    "author": "GeyserMC",
+    "license": "AGPL-3.0-only",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "package": "ncc build index.ts --license licenses.txt",
+        "package:watch": "npm run package -- --watch"
+    },
+    "dependencies": {
+        "node-scp": "0.0.23"
+    }
+}

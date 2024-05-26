@@ -1,5 +1,6 @@
-# base-release-action
-You can join the [Discord](https://discord.gg/5z4GuSnqmQ) for help with this project. An action to create incremented releases in a similar style to Jenkins
+# Release Action
+
+An action to create releases for GeyserMC projects.
 
 ## Usage
 
@@ -16,14 +17,15 @@ Data about the previous release for each branch is stored under the `RELEASEACTI
 ### Minimal Configuration
 
 ```yaml
-- uses: Kas-tle/base-release-action@ # use latest commit hash
-  if: always() # If you wish to run even when previous steps have failed
+- uses: GeyserMC/actions/release@master
   with:
     files: | # Newline-separated list of files to upload with optional "label:" prefix
       testa:file_a.json
       testb:file_b.json
     appID: ${{ secrets.RELEASE_APP_ID }} # The ID of the GitHub App to manage the release system
     appPrivateKey: ${{ secrets.RELEASE_APP_PK }} # The private key of the GitHub App in PEM format
+    saveMetadata: true # Whether or not to save the release metadata to metadata.json
+    releaseEnabled: false # Whether or not to create a GitHub release
 ```
 
 Note that when using the `push` trigger, given this action creates a tag using a bot token, GitHub will retrigger this action since that is considered a push event. This is, of course, generally not the desired outcome. This can be avoided by specifying that the action should only run on push to branches:
@@ -69,6 +71,7 @@ on:
 | `releaseAPIURL`     | The API URL of the release.              |
 | `releaseAssetsURL`  | The asset URL for the release.           |
 | `releaseBrowserURL` | The browser URL of the release.          |
+| `body`              | The body of the release.                 |
 | `tag`               | The tag of the release.                  |
 | `tagBase`           | The base of the tag of the release.      |
 | `tagPrefix`         | The prefix of the tag of the release.    |

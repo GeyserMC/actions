@@ -1,0 +1,25 @@
+name: notify-discord
+description: "An action to notify a Discord channel of a deployment."
+
+inputs:
+    body:
+        description: 'The body of the message to send to Discord.'
+        required: true
+    discordWebhook:
+        description: 'Discord webhook to post the release to.'
+        required: true
+    downloadsApiUrl:
+        description: 'The URL to the downloads API.'
+        required: false
+        default: 'https://download.geysermc.org/v2/projects/'
+    includeDownloads:
+        description: 'Whether or not to include download links in the message.'
+        required: false
+        default: 'true'
+    metadata:
+        description: 'Metadata file containing release data.'
+        required: false
+        default: 'metadata.json'
+    status:
+        description: 'The status of the deployment.'
+        required: true

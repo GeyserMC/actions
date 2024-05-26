@@ -3,9 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - 'main'
-    paths:
-      - 'package.json'
+      - 'master'
 
 jobs:
   release:
@@ -15,36 +13,36 @@ jobs:
       release_id: ${{ steps.release.outputs.releaseID }}
 
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-    - uses: actions/setup-node@ee36e8b5c0fdd6014a0398aed18ce9876360bd63
+      # See https://github.com/actions/checkout/releases
+    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      # See https://github.com/actions/setup-node/releases
+    - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
       with:
         node-version: 20
-    - name: Build and package
+    - name: Build and Package
       run: |
         yarn
         yarn package
-    - name: Commit changes
-      uses: planetscale/ghcommit-action@5cd5ba8c2ef5c6e6d90f856d36e700fb79183e68
+    - name: Commit Changes
+      # See https://github.com/planetscale/ghcommit-action/releases
+      uses: planetscale/ghcommit-action@b662a9d7235a07e80d976152ed5afe41651c4973 # v0.1.43
       with:
-        commit_message: "Update dist/index.js"
+        commit_message: "Update **/dist/index.js"
         repo: ${{ github.repository }}
         branch: ${{ github.head_ref || github.ref_name }}
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - id: hash
       run: |
-        git fetch origin 
+        git fetch origin
         echo "hash=$(git rev-parse `git branch -r --sort=committerdate | tail -1`)" >> $GITHUB_OUTPUT
     - name: Make release
       id: release
-      uses: ./
+      uses: ./release/
       with:
-        files: |
-          dist/index.js
         appID: ${{ secrets.RELEASE_APP_ID }}
         appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
         lastCommit: ${{ steps.hash.outputs.hash }}
-        discordWebhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   upload-logs:
     name: Upload Logs

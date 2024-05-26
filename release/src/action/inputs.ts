@@ -78,9 +78,11 @@ async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: 
     const enabled = core.getBooleanInput('releaseEnabled');
     const metadata = core.getBooleanInput('saveMetadata');
     const update_release_data = core.getBooleanInput('updateReleaseData');
+    const project = core.getInput('releaseProject') === 'auto' ? repo.toLowerCase() : core.getInput('releaseProject');
+    const version = core.getInput('releaseVersion') === 'auto' ? tag.base : core.getInput('releaseVersion');
 
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata, update_release_data };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata, update_release_data, project, version };
 }
 
 async function getSuccess(inp: {api: OctokitApi, repoData: Repo}): Promise<boolean> {
@@ -149,7 +151,8 @@ async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, r
     
         const changes: Inputs.Change[] = [];
     
-        const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999 });
+        const path = core.getInput('releaseChangePath') === '' ? undefined : core.getInput('releaseChangePath');
+        const compareReponse = await api.rest.repos.compareCommits({ owner: repoData.owner, repo: repoData.repo, base: firstCommit, head: lastCommit, page: 1, per_page: 9999, path });
         const commits = compareReponse.data.commits;
     
         for (const c of commits) {
@@ -191,7 +194,7 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): 
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
         const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
 
-        let changelog = `## Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os.EOL}`;
+        let changelog = `### Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os.EOL}`;
 
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;

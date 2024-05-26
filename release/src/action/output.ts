@@ -13,6 +13,8 @@ export async function setOutputs(inp: {release: ReleaseResponse | null, inputs: 
         core.setOutput('releaseAssetsURL', release.data.assets_url);
     }
 
+    core.setOutput('body', inputs.release.body);
+
     const tag = inputs.tag.prefix + inputs.tag.separator + inputs.tag.base;
 
     core.setOutput('tag', tag);

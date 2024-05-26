@@ -124,8 +124,6 @@ async function uploadReleaseData(inp: {api: OctokitApi, inputs: Inputs, release:
 async function saveOfflineMetadata(inp: {inputs: Inputs, repoData: Repo}) {
     const { inputs, repoData } = inp;
 
-    const { owner, repo, branch } = repoData;
-
     const downloads: Record<string, FileInfo> = {};
 
     for (const file of inputs.files) {
@@ -143,14 +141,11 @@ async function saveOfflineMetadata(inp: {inputs: Inputs, repoData: Repo}) {
     }
 
     const metadata = {
-        owner,
-        repo,
-        branch,
-        build: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
-        tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
-        timestamp: Date.now().toString(),
-        prerelease: inputs.release.prerelease,
-        changes: inputs.changes,
+        project: inputs.release.project,
+        repo: repoData.repo,
+        version: inputs.release.version,
+        number: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
+        changes: inputs.changes.map(c => ({ commit: c.commit, summary: c.summary, message: c.message })),
         downloads
     };
 

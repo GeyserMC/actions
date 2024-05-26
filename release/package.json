@@ -1,0 +1,29 @@
+{
+    "name": "release",
+    "private": true,
+    "version": "1.0.0",
+    "description": "An action to create incremented releases in a similar style to Jenkins",
+    "author": "GeyserMC",
+    "license": "AGPL-3.0-only",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "package": "ncc build index.ts --license licenses.txt",
+        "package:watch": "npm run package -- --watch"
+    },
+    "dependencies": {
+        "@octokit/auth-app": "6.0.1",
+        "@octokit/core": "5.0.1",
+        "@octokit/plugin-rest-endpoint-methods": "10.0.0",
+        "@vermaysha/discord-webhook": "1.4.0",
+        "markdown-escape": "2.0.0"
+    },
+    "devDependencies": {
+        "@types/markdown-escape": "1.1.1",
+        "js-yaml": "4.1.0"
+    }
+}

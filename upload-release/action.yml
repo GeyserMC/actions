@@ -1,0 +1,28 @@
+name: upload-release
+description: "An action to upload releases via SCP."
+
+inputs:
+    directory:
+        description: 'The directory to upload the files to.'
+        required: false
+        default: 'auto'
+    files:
+        description: 'The files to upload.'
+        required: true
+    host:
+        description: 'The hostname to connect to over SCP.'
+        required: true
+    metadata:
+        description: 'The metadata file to attach to the release.'
+        required: false
+        default: 'metadata.json'
+    port:
+        description: 'The port to connect to over SCP.'
+        required: false
+        default: '22'
+    privateKey:
+        description: 'The private key to use for the SCP connection.'
+        required: true
+    username:
+        description: 'The username to use for the SCP connection.'
+        required: true
