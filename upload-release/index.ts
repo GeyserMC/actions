@@ -15,7 +15,7 @@ async function run(): Promise<void> {
         let directory = core.getInput('directory');
 
         if (directory === 'auto') {
-            directory = `uploads/${process.env.GITHUB_REPOSITORY}/${process.env.GITHUB_RUN_NUMBER}/`
+            directory = `uploads/${process.env.GITHUB_REPOSITORY}/${process.env.GITHUB_RUN_ID}/`
         }
 
         const files = core.getInput('files');
