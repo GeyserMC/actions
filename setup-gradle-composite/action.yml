@@ -32,17 +32,18 @@ inputs:
     description: 'Whether to clean up the Gradle home cache.'
     required: false
     default: 'true'
+
 runs:
   using: 'composite'
   steps:
     - name: Checkout Repository and Submodules
       # See https://github.com/actions/checkout/commits
       uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-        with:
-          repository: ${{ inputs.checkout.repository }}
-          ref: ${{ inputs.checkout.ref }}
-          submodules: ${{ inputs.checkout.submodules }}
-          fetch-depth: ${{ inputs.checkout.fetch-depth }}
+      with:
+        repository: ${{ inputs.checkout.repository }}
+        ref: ${{ inputs.checkout.ref }}
+        submodules: ${{ inputs.checkout.submodules }}
+        fetch-depth: ${{ inputs.checkout.fetch-depth }}
 
     - name: Validate Gradle Wrapper
       # See https://github.com/gradle/actions/commits
@@ -51,13 +52,13 @@ runs:
     - name: Setup Java
       # See https://github.com/actions/setup-java/commits
       uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
-        with:
-            distribution: ${{ inputs.setup-java.distribution }}
-            java-version: ${{ inputs.setup-java.java-version }}
+      with:
+        distribution: ${{ inputs.setup-java.distribution }}
+        java-version: ${{ inputs.setup-java.java-version }}
 
     - name: Setup Gradle
       # See https://github.com/gradle/actions/commits
       uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
-        with:
-          cache-read-only: ${{ inputs.setup-gradle.cache-read-only }}
-          gradle-home-cache-cleanup: ${{ inputs.setup-gradle.gradle-home-cache-cleanup }}
+      with:
+        cache-read-only: ${{ inputs.setup-gradle.cache-read-only }}
+        gradle-home-cache-cleanup: ${{ inputs.setup-gradle.gradle-home-cache-cleanup }}
