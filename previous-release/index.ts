@@ -11,8 +11,10 @@ async function run(): Promise<void> {
         } = JSON.parse(core.getInput('data'));
 
         if (!data[branch]) {
-            console.log(`No data found for branch ${branch}`);
-            core.setFailed(`No data found for branch ${branch}`);
+            core.setOutput('previousRelease', '0');
+            core.setOutput('previousCommit', '');
+            core.setOutput('curentRelease', '1');
+            return;
         }
 
         const { c: commit, t: tag } = data[branch];
