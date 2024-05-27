@@ -24949,7 +24949,7 @@ const core = __importStar(__nccwpck_require__(5316));
 async function run() {
     try {
         const branch = core.getInput('branch') || process.env.GITHUB_REF_NAME;
-        const data = JSON.parse(core.getInput('data'));
+        const data = JSON.parse(core.getInput('data') || '{}');
         if (data === '' || !data[branch]) {
             core.setOutput('previousRelease', '0');
             core.setOutput('previousCommit', '');
