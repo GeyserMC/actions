@@ -24951,8 +24951,10 @@ async function run() {
         const branch = core.getInput('branch') || process.env.GITHUB_REF_NAME;
         const data = JSON.parse(core.getInput('data'));
         if (!data[branch]) {
-            console.log(`No data found for branch ${branch}`);
-            core.setFailed(`No data found for branch ${branch}`);
+            core.setOutput('previousRelease', '0');
+            core.setOutput('previousCommit', '');
+            core.setOutput('curentRelease', '1');
+            return;
         }
         const { c: commit, t: tag } = data[branch];
         core.setOutput('previousCommit', commit);
