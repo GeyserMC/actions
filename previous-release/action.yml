@@ -1,0 +1,26 @@
+name: previous-release
+description: "An action to get outputs for the previous release."
+
+inputs:
+    branch:
+        description: 'The branch to use for the previous release.'
+        required: false
+    data:
+        description: 'The JSON data of the previous release.'
+        required: true
+
+outputs:
+    curentRelease:
+        description: 'If numeric, the incremented tag of the previous release.'
+    previousRelease:
+        description: 'The tag of the previous release.'
+    previousCommit:
+        description: 'The commit of the previous release.'
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
+
+branding:
+    icon: "repeat"
+    color: "gray-dark"

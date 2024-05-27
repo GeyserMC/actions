@@ -5,6 +5,7 @@
     "repository": "https://github.com/GeyserMC/actions.git",
     "workspaces": [
         "notify-discord/",
+        "previous-release/",
         "release/",
         "upload-release/"
     ],

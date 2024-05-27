@@ -2,9 +2,10 @@
 
 A collection of GitHub Actions for GeyserMC projects. See the READMEs in each action for more information:
 
-- [Release Action](release/README.md)
-- [Notify Discord Action](notify-discord/README.md)
-- [Upload Release Action](upload-release/README.md)
+- [Notify Discord Action](notify-discord/README.md): Notifies a Discord channel of a deployment
+- [Previous Release Action](previous-release/README.md): Gets outputs for the previous release
+- [Release Action](release/README.md): Creates incremented releases in a similar style to Jenkins
+- [Upload Release Action](upload-release/README.md): Uploads releases via SCP
 
 ## Building
 
