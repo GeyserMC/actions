@@ -28025,7 +28025,7 @@ async function run() {
             .addField({ name: '', value: `**Run ID**: [${runId}](${repoUrl}/actions/runs/${runId})`, inline: true });
         new discord_webhook_1.Webhook(core.getInput('discordWebhook'))
             .setUsername('GitHub Actions')
-            .setAvatarUrl('https://media.discordapp.net/attachments/472838100951760928/1244362582949892166/Microsoft.png')
+            .setAvatarUrl('https://media.discordapp.net/attachments/472838100951760928/1244710120424738976/github-actions-logo.png')
             .addEmbed(embed)
             .send();
     }
