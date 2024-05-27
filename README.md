@@ -5,6 +5,7 @@ A collection of GitHub Actions for GeyserMC projects. See the READMEs in each ac
 - [Notify Discord Action](notify-discord/README.md): Notifies a Discord channel of a deployment
 - [Previous Release Action](previous-release/README.md): Gets outputs for the previous release
 - [Release Action](release/README.md): Creates incremented releases in a similar style to Jenkins
+- [Setup Gradle Composite Action](setup-gradle-composite/README.md): Sets up a Gradle environment with the checked-out repository, Java, and Gradle wrapper validation
 - [Upload Release Action](upload-release/README.md): Uploads releases via SCP
 
 ## Building
