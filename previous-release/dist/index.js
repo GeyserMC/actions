@@ -24961,6 +24961,9 @@ async function run() {
         if (!isNaN(tagNum)) {
             core.setOutput('curentRelease', tagNum + 1);
         }
+        else {
+            core.setOutput('curentRelease', process.env.GITHUB_RUN_NUMBER);
+        }
     }
     catch (error) {
         console.log(error.message);
