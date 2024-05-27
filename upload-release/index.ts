@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as fs from 'fs';
+import * as path from 'path';
 import { Client, ScpClient } from 'node-scp';
 
 async function run(): Promise<void> {
@@ -28,8 +29,7 @@ async function run(): Promise<void> {
             privateKey: Buffer.from(core.getInput('privateKey'), 'utf-8')
         });
 
-        console.log(`Uploading release to ${directory}`);
-
+        console.log(`Creating release directory ${directory}`);
         const parts = directory.split('/');
         let current = '';
         for (const part of parts) {
@@ -38,15 +38,17 @@ async function run(): Promise<void> {
                 await client.mkdir(current);
             }
         }
-
         console.log(`Created directory ${directory}`);
+
         for (const file of uploads) {
             console.log(`Uploading ${file}`);
-            await client.uploadFile(file, directory);
+            await client.uploadFile(file, path.join(directory, path.basename(file)));
             console.log(`Uploaded ${file}`);
         }
 
-        await client.uploadFile(metadata, directory);
+        console.log(`Uploading metadata`);
+        await client.uploadFile(metadata, path.join(directory, path.basename(metadata)));
+        console.log(`Uploaded metadata`);
         client.close();
 
         console.log(`Release uploaded`);
