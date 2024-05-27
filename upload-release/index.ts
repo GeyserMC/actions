@@ -27,8 +27,11 @@ async function run(): Promise<void> {
             privateKey: Buffer.from(core.getInput('privateKey'), 'utf-8')
         });
 
+        console.log(`Uploading release to ${directory}`);
         await client.mkdir(directory);
+        console.log(`Created directory ${directory}`);
         for (const file of uploads) {
+            console.log(`Uploading ${file}`);
             await client.uploadFile(file, directory);
             console.log(`Uploaded ${file}`);
         }
