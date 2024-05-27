@@ -1,61 +1,53 @@
-name: 'setup-gradle-composite'
-description: 'An action to set up a Gradle environment with the checked-out repository, Java, and Gradle wrapper validation.'
+name: setup-gradle-composite
+description: An action to set up a Gradle environment with the checked-out repository, Java, and Gradle wrapper validation.
 inputs:
-  checkout_repository:
-    description: 'The repository to checkout.'
-    required: false
-    default: ${{ github.repository }}
-  checkout_ref:
-    description: 'The ref to checkout.'
-    required: false
-  checkout_submodules:
-    description: 'Whether to checkout submodules.'
-    required: false
-    default: 'recurse'
-  checkout_fetch-depth:
-    description: 'The depth to fetch the repository.'
-    required: false
-  setup-java_java-version:
-    description: 'The Java version to use.'
-    required: true
-  setup-java_distribution:
-    description: 'The Java distribution to use.'
-    required: false
-    default: 'temurin'
-  setup-gradle_cache-read-only:
-    description: 'Whether to make the Gradle cache read-only.'
-    required: false
-  setup-gradle_gradle-home-cache-cleanup:
-    description: 'Whether to clean up the Gradle home cache.'
-    required: false
-    default: 'true'
-
+    checkout_repository:
+        description: The repository to checkout.
+        required: false
+        default: '${{ github.repository }}'
+    checkout_ref:
+        description: The ref to checkout.
+        required: false
+    checkout_submodules:
+        description: Whether to checkout submodules.
+        required: false
+        default: recurse
+    checkout_fetch-depth:
+        description: The depth to fetch the repository.
+        required: false
+    setup-java_java-version:
+        description: The Java version to use.
+        required: true
+    setup-java_distribution:
+        description: The Java distribution to use.
+        required: false
+        default: temurin
+    setup-gradle_cache-read-only:
+        description: Whether to make the Gradle cache read-only.
+        required: false
+    setup-gradle_gradle-home-cache-cleanup:
+        description: Whether to clean up the Gradle home cache.
+        required: false
+        default: true
 runs:
-  using: 'composite'
-  steps:
-    - name: Checkout Repository and Submodules
-      # See https://github.com/actions/checkout/commits
-      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
-      with:
-        repository: ${{ inputs.checkout_repository }}
-        ref: ${{ inputs.checkout_ref }}
-        submodules: ${{ inputs.checkout_submodules }}
-        fetch-depth: ${{ inputs.checkout_fetch-depth }}
-
-    - name: Validate Gradle Wrapper
-      # See https://github.com/gradle/actions/commits
-      uses: gradle/actions/wrapper-validation@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
-
-    - name: Setup Java
-      # See https://github.com/actions/setup-java/commits
-      uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
-      with:
-        distribution: ${{ inputs.setup-java_distribution }}
-        java-version: ${{ inputs.setup-java_java-version }}
-
-    - name: Setup Gradle
-      # See https://github.com/gradle/actions/commits
-      uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43 # v3.3.2
-      with:
-        cache-read-only: ${{ inputs.setup-gradle_cache-read-only }}
-        gradle-home-cache-cleanup: ${{ inputs.setup-gradle_gradle-home-cache-cleanup }}
+    using: composite
+    steps:
+        - name: Checkout Repository and Submodules
+          uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+          with:
+              repository: '${{ inputs.checkout_repository }}'
+              ref: '${{ inputs.checkout_ref }}'
+              submodules: '${{ inputs.checkout_submodules }}'
+              fetch-depth: '${{ inputs.checkout_fetch-depth }}'
+        - name: Validate Gradle Wrapper
+          uses: gradle/actions/wrapper-validation@db19848a5fa7950289d3668fb053140cf3028d43
+        - name: Setup Java
+          uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9
+          with:
+              distribution: '${{ inputs.setup-java_distribution }}'
+              java-version: '${{ inputs.setup-java_java-version }}'
+        - name: Setup Gradle
+          uses: gradle/actions/setup-gradle@db19848a5fa7950289d3668fb053140cf3028d43
+          with:
+              cache-read-only: '${{ inputs.setup-gradle_cache-read-only }}'
+              gradle-home-cache-cleanup: '${{ inputs.setup-gradle_gradle-home-cache-cleanup }}'

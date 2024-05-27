@@ -2,7 +2,7 @@ name: Geyser Actions
 description: A collection of GitHub Actions for GeyserMC projects.
 
 runs:
-  using: "composite"
+  using: composite
   steps:
   - run: |
       echo "::error::The path 'GeyserMC/actions' is not a valid action. Please use 'GeyserMC/actions/release' or 'GeyserMC/actions/discord'."
@@ -10,5 +10,5 @@ runs:
     shell: bash
 
 branding:
-  icon: 'droplet'
-  color: 'blue'
+  icon: droplet
+  color: blue
