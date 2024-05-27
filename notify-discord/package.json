@@ -16,6 +16,6 @@
         "package:watch": "npm run package -- --watch"
     },
     "dependencies": {
-        "@vermaysha/discord-webhook": "^1.4.0"
+        "@vermaysha/discord-webhook": "1.4.0"
     }
 }
