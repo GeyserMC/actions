@@ -27996,7 +27996,8 @@ async function run() {
     try {
         const status = core.getInput('status');
         const failed = status === 'failure';
-        const includeDownloads = core.getBooleanInput('includeDownloads');
+        const metadataFile = core.getInput('metadata');
+        const includeDownloads = core.getBooleanInput('includeDownloads') && fs.existsSync(metadataFile);
         const downloadsApiUrl = core.getInput('downloadsApiUrl');
         const color = failed ? '#e00016' : '#03fc5a';
         const body = core.getInput('body');
@@ -28010,7 +28011,7 @@ async function run() {
             .setColor(color)
             .setDescription(body);
         if (!failed && includeDownloads) {
-            const metadata = JSON.parse(fs.readFileSync(core.getInput('metadata'), 'utf8'));
+            const metadata = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
             let downloads = '';
             for (const label in metadata.downloads) {
                 const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
