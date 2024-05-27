@@ -39721,7 +39721,7 @@ async function getReleaseBody(inp) {
                     break;
             }
             const sha = change.commit.slice(0, 7);
-            changelog += `- ${(0, markdown_escape_1.default)(change.summary)} ([\`${sha}\`](${url}/${owner}/${repo}/commit/${sha})) by ${(0, markdown_escape_1.default)(authors)}${os_1.default.EOL}`;
+            changelog += `- [\`${sha}\`](${url}/${owner}/${repo}/commit/${sha}) ${(0, markdown_escape_1.default)(change.summary)} by ${(0, markdown_escape_1.default)(authors)}${os_1.default.EOL}`;
         }
         if (truncatedChanges > 0) {
             changelog += `... and ${truncatedChanges} more${os_1.default.EOL}`;
