@@ -39575,7 +39575,10 @@ async function getPrevRelease(inp) {
     }
 }
 function getFiles() {
-    const files = core.getInput('files', { required: true });
+    const files = core.getInput('files');
+    if (files === '') {
+        return [];
+    }
     return parse.parseMultiInput(files).map(file => {
         if (!file.includes(':')) {
             return { label: path_1.default.parse(file).name.toLowerCase(), path: file };
