@@ -50243,6 +50243,7 @@ const core = __importStar(__nccwpck_require__(5316));
 const fs = __importStar(__nccwpck_require__(7147));
 const node_scp_1 = __nccwpck_require__(4940);
 async function run() {
+    let client = null;
     try {
         const metadata = core.getInput('metadata');
         if (!fs.existsSync(metadata)) {
@@ -50251,19 +50252,26 @@ async function run() {
         }
         let directory = core.getInput('directory');
         if (directory === 'auto') {
-            directory = `~/uploads/${process.env.GITHUB_REPOSITORY}/${process.env.GITHUB_RUN_NUMBER}/`;
+            directory = `uploads/${process.env.GITHUB_REPOSITORY}/${process.env.GITHUB_RUN_NUMBER}/`;
         }
         const files = core.getInput('files');
         let uploads = files.includes('\n') ? files.split('\n') : files.split(',');
         uploads = uploads.map(s => s.trim()).filter(s => s !== '');
-        const client = await (0, node_scp_1.Client)({
+        client = await (0, node_scp_1.Client)({
             host: core.getInput('host'),
             port: core.getInput('port'),
             username: core.getInput('username'),
             privateKey: Buffer.from(core.getInput('privateKey'), 'utf-8')
         });
         console.log(`Uploading release to ${directory}`);
-        await client.mkdir(directory);
+        const parts = directory.split('/');
+        let current = '';
+        for (const part of parts) {
+            current += part + '/';
+            if (!(await client.exists(current))) {
+                await client.mkdir(current);
+            }
+        }
         console.log(`Created directory ${directory}`);
         for (const file of uploads) {
             console.log(`Uploading ${file}`);
@@ -50275,6 +50283,8 @@ async function run() {
         console.log(`Release uploaded`);
     }
     catch (error) {
+        if (client)
+            client.close();
         console.log(error.message);
         core.setFailed(error.message);
     }
