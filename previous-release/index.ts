@@ -8,7 +8,7 @@ async function run(): Promise<void> {
                 c: string;
                 t: string;
             }
-        } | '' = JSON.parse(core.getInput('data'));
+        } | '' = JSON.parse(core.getInput('data') || '{}');
 
         if (data === '' || !data[branch]) {
             core.setOutput('previousRelease', '0');
