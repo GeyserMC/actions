@@ -23,6 +23,8 @@ async function run(): Promise<void> {
         const tagNum = parseInt(tag);
         if (!isNaN(tagNum)) {
             core.setOutput('curentRelease', tagNum + 1);
+        } else {
+            core.setOutput('curentRelease', process.env.GITHUB_RUN_NUMBER!);
         }
     } catch (error: any) {
         console.log(error.message);
