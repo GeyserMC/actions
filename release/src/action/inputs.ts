@@ -198,7 +198,7 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): 
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
         const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
 
-        let changelog = `### Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os.EOL}`;
+        let changelog = `### [Changes](${diffURL}):${os.EOL}`;
 
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
