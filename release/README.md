@@ -41,7 +41,7 @@ on:
 | Input                | Description                                                                                                                                            | Default | Required |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
 | `appID`              | ID of the GitHub App to manage the release system.                                                                                                     |         | `true`   |
-| `appPrivateKey`      | Private key of the GitHub App to manage the release system.                                                                                            |         | `true`   |
+| `appPrivateKey`      | Private key of the GitHub App to manage the release system.                                                                                            |         | `false`  |
 | `files`              | Comma-separated or newline-separated list of release files with optional "label:" prefix.                                                              |         | `true`   |
 | `discordWebhook`     | Discord webhook to post the release to.                                                                                                                | `none`  | `false`  |
 | `discussionCategory` | The category to use for the discussion. Defaults to "none" if not specified.                                                                           | `none`  | `false`  |

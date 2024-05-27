@@ -10,7 +10,7 @@ inputs:
         required: true
     files:
         description: 'Comma-separated or newline-separated list of release files with optional "label:" prefix.'
-        required: true
+        required: false
     discordWebhook:
         description: 'Discord webhook to post the release to.'
         required: false

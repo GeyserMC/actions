@@ -27,7 +27,7 @@ jobs:
       # See https://github.com/planetscale/ghcommit-action/releases
       uses: planetscale/ghcommit-action@b662a9d7235a07e80d976152ed5afe41651c4973 # v0.1.43
       with:
-        commit_message: "Update **/dist/index.js"
+        commit_message: "Update action distribution files"
         repo: ${{ github.repository }}
         branch: ${{ github.head_ref || github.ref_name }}
       env:
@@ -40,7 +40,6 @@ jobs:
       id: release
       uses: ./release/
       with:
-        files:
         appID: ${{ secrets.RELEASE_APP_ID }}
         appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
         lastCommit: ${{ steps.hash.outputs.hash }}

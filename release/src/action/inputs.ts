@@ -47,7 +47,11 @@ async function getPrevRelease(inp: {api: OctokitApi, repoData: Repo}): Promise<P
 }
 
 function getFiles(): Inputs.File[] {
-    const files = core.getInput('files', { required: true });
+    const files = core.getInput('files');
+
+    if (files === '') {
+        return [];
+    }
 
     return parse.parseMultiInput(files).map(file => {
         if (!file.includes(':')) {
