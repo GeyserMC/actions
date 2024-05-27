@@ -8,9 +8,9 @@ async function run(): Promise<void> {
                 c: string;
                 t: string;
             }
-        } = JSON.parse(core.getInput('data'));
+        } | '' = JSON.parse(core.getInput('data'));
 
-        if (!data[branch]) {
+        if (data === '' || !data[branch]) {
             core.setOutput('previousRelease', '0');
             core.setOutput('previousCommit', '');
             core.setOutput('curentRelease', '1');
