@@ -26,3 +26,11 @@ inputs:
     username:
         description: 'The username to use for the SCP connection.'
         required: true
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
+
+branding:
+    icon: "share"
+    color: "gray-dark"

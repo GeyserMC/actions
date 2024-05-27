@@ -11,9 +11,9 @@ This action requires an instance of the [GeyserMC Downloads API](https://github.
 ```yaml
 - uses: GeyserMC/actions/upload-release@master
   with:
-    files: | # Newline-separated list of files to upload with optional "label:" prefix
-      testa:file_a.json
-      testb:file_b.json
+    files: | # Newline-separated list of files to upload
+      file_a.json
+      file_b.json
     host: ${{ secrets.DOWNLOADS_SERVER_IP }} # The IP address of the server to upload to
     privateKey: ${{ secrets.DOWNLOADS_PRIVATE_KEY }} # The private key to use for authentication
     username: ${{ secrets.DOWNLOADS_USERNAME }} # The username to use for authentication

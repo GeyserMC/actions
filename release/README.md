@@ -54,8 +54,11 @@ on:
 | `preRelease`         | Whether or not the release is a pre-release. Inferred by the branch if not specified.                                                                  | `auto`  | `false`  |
 | `releaseBody`        | A file containing the body of the release. Defaults to the commit changelog if not specified.                                                          | `auto`  | `false`  |
 | `releaseChangeLimit` | The maximum number of changes to include in the release body. Defaults to 15 if not specified. Set to -1 to include all changes.                       | `15`    | `false`  |
+| `releaseChangePath`  | The path from which to get the changes for the release body. Defaults to the root of the repository if not specified.                                  | ``      | `false`  |
 | `releaseEnabled`     | Whether or not the release should be created. Defaults to true if not specified.                                                                       | `true`  | `false`  |
 | `releaseName`        | The title of the release. Defaults to "Build ${tagBase} (${branch})" if not specified.                                                                 | `auto`  | `false`  |
+| `releaseProject`     | The project to use for the metadata of the release. Defaults to the lowercase repository name if not specified.                                        | `auto`  | `false`  |
+| `releaseVersion`     | The version of the release. Defaults to the tag if not specified.                                                                                      | `auto`  | `false`  |
 | `saveMetadata`       | Whether or not to save the offline release metadata to metadata.json. Defaults to false if not specified.                                              | `false` | `false`  |
 | `tagBase`            | The tag base to use for the release. Auto increment from the last tag will be used if not specified.                                                   | `auto`  | `false`  |
 | `tagIncrement`       | If the build tag should be incremented. Defaults to true if not specified and tag is a number.                                                         | `true`  | `false`  |

@@ -23,3 +23,11 @@ inputs:
     status:
         description: 'The status of the deployment.'
         required: true
+
+runs:
+    using: "node20"
+    main: "dist/index.js"
+
+branding:
+    icon: "bell"
+    color: "gray-dark"
