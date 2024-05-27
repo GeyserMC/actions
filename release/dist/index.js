@@ -39699,7 +39699,7 @@ async function getReleaseBody(inp) {
         const firstCommit = changes[0].commit.slice(0, 7);
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
         const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
-        let changelog = `### Changes: [\`${firstCommit}...${lastCommit}\`](${diffURL})${os_1.default.EOL}`;
+        let changelog = `### [Changes](${diffURL}):${os_1.default.EOL}`;
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
         if (parse.isPosInteger(changeLimit)) {
