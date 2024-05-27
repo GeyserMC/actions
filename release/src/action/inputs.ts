@@ -223,7 +223,7 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): 
                     break;
             }
             const sha = change.commit.slice(0, 7);
-            changelog += `- ${markdownEscape(change.summary)} ([\`${sha}\`](${url}/${owner}/${repo}/commit/${sha})) by ${markdownEscape(authors)}${os.EOL}`;
+            changelog += `- [\`${sha}\`](${url}/${owner}/${repo}/commit/${sha}) ${markdownEscape(change.summary)} by ${markdownEscape(authors)}${os.EOL}`;
         }
 
         if (truncatedChanges > 0) {
