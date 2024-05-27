@@ -36,12 +36,11 @@ async function run(): Promise<void> {
             let downloads = '';
 
             for (const label in metadata.downloads) {
-                const url = new URL(`/${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
+                const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
                 downloads += `- [${metadata.downloads[label].name}](${url})\n`;
             }
 
-            embed.addField({ name: `Downloads`, value: downloads, inline: false });
-            embed.addField({ name: '', value: `**Build #**: ${metadata.number}`, inline: true });
+            embed.addField({ name: `Downloads (Build #${metadata.number})`, value: downloads, inline: false });
         }
 
         embed
@@ -50,15 +49,11 @@ async function run(): Promise<void> {
             .addField({ name: '', value: `**Branch**: [${branch}](${repoUrl}/tree/${branch})`, inline: true })
             .addField({ name: '', value: `**Run ID**: [${runId}](${repoUrl}/actions/runs/${runId})`, inline: true });
 
-        try {
-            new Webhook(core.getInput('discordWebhook'))
-                .setUsername('GitHub Actions')
-                .setAvatarUrl('https://media.discordapp.net/attachments/472838100951760928/1244362582949892166/Microsoft.png')
-                .addEmbed(embed)
-                .send();
-        } catch (error) {
-            console.log('Could not send webhook: ', error);
-        }
+        new Webhook(core.getInput('discordWebhook'))
+            .setUsername('GitHub Actions')
+            .setAvatarUrl('https://media.discordapp.net/attachments/472838100951760928/1244362582949892166/Microsoft.png')
+            .addEmbed(embed)
+            .send();
     } catch (error: any) {
         console.log(error.message);
         core.setFailed(error.message);
