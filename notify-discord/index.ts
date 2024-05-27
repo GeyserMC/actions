@@ -1,6 +1,6 @@
-import * as core from '@actions/core'
-import * as fs from 'fs'
-import { Embed, Webhook } from '@vermaysha/discord-webhook'
+import * as core from '@actions/core';
+import * as fs from 'fs';
+import { Embed, Webhook } from '@vermaysha/discord-webhook';
 
 async function run(): Promise<void> {
     try {

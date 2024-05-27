@@ -1,4 +1,4 @@
-import * as core from '@actions/core'
+import * as core from '@actions/core';
 import { getInputs } from './src/action/inputs';
 import { writeRelease } from './src/action/release';
 import { getRepoData } from './src/action/repo';
@@ -23,7 +23,7 @@ async function run(): Promise<void> {
         console.log(`Release finished`);
     } catch (error: any) {
         console.log(error.message);
-        core.setFailed(error.message)
+        core.setFailed(error.message);
     }
 }
 
