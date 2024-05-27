@@ -9,6 +9,7 @@
         "notify-discord/",
         "previous-release/",
         "release/",
+        "upload-multi-artifact/",
         "upload-release/"
     ],
     "scripts": {

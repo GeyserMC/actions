@@ -1,0 +1,15 @@
+name: upload-multi-artifact
+description: An action to upload multiple action artifacts.
+
+inputs:
+    artifacts:
+        description: The artifacts to upload.
+        required: true
+
+runs:
+    using: node20
+    main: dist/index.js
+
+branding:
+    icon: share
+    color: gray-dark
