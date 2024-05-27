@@ -3,6 +3,8 @@
     "version": "1.0.0",
     "private": true,
     "repository": "https://github.com/GeyserMC/actions.git",
+    "author": "GeyserMC",
+    "license": "AGPL-3.0-only",
     "workspaces": [
         "notify-discord/",
         "previous-release/",
