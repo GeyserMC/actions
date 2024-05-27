@@ -36,17 +36,19 @@ async function run(): Promise<void> {
             let downloads = '';
 
             for (const label in metadata.downloads) {
-                downloads += `- [${metadata.downloads[label].name}](${downloadsApiUrl}/${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label})\n`;
+                const url = new URL(`/${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
+                downloads += `- [${metadata.downloads[label].name}](${url})\n`;
             }
 
-            embed.addField({ name: `Downloads (Build #${metadata.number})`, value: downloads, inline: false });
+            embed.addField({ name: `Downloads`, value: downloads, inline: false });
+            embed.addField({ name: '', value: `**Build #**: ${metadata.number}`, inline: true });
         }
 
         embed
-            .addField({ name: '', value: `Released: <t:${time}:R>`, inline: true })
-            .addField({ name: '', value: `Status: ${core.getInput('status')}`, inline: true })
-            .addField({ name: '', value: `Branch: [${branch}](${repoUrl}/tree/${branch})`, inline: true })
-            .addField({ name: '', value: `Run ID: [${runId}](${repoUrl}/actions/runs/${runId})`, inline: true });
+            .addField({ name: '', value: `**Released**: <t:${time}:R>`, inline: true })
+            .addField({ name: '', value: `**Status**: ${core.getInput('status')}`, inline: true })
+            .addField({ name: '', value: `**Branch**: [${branch}](${repoUrl}/tree/${branch})`, inline: true })
+            .addField({ name: '', value: `**Run ID**: [${runId}](${repoUrl}/actions/runs/${runId})`, inline: true });
 
         try {
             new Webhook(core.getInput('discordWebhook'))
