@@ -8,7 +8,6 @@ inputs:
   checkout_ref:
     description: 'The ref to checkout.'
     required: false
-    default: ${{ github.ref }}
   checkout_submodules:
     description: 'Whether to checkout submodules.'
     required: false
@@ -16,7 +15,6 @@ inputs:
   checkout_fetch-depth:
     description: 'The depth to fetch the repository.'
     required: false
-    default: '1'
   setup-java_java-version:
     description: 'The Java version to use.'
     required: true
@@ -27,7 +25,6 @@ inputs:
   setup-gradle_cache-read-only:
     description: 'Whether to make the Gradle cache read-only.'
     required: false
-    default: 'false'
   setup-gradle_gradle-home-cache-cleanup:
     description: 'Whether to clean up the Gradle home cache.'
     required: false

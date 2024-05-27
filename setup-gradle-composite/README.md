@@ -22,10 +22,10 @@ This action makes use of the following actions:
 
 | Input                                    | Description                                 | Default                    | Required |
 | ---------------------------------------- | --------------------------------------------| -------------------------- | -------- |
-| `checkout.repository`                    | The repository to checkout.                 | `${{ github.repository }}` | `false`  |
-| `checkout.ref`                           | The ref to checkout.                        | `${{ github.ref }}`        | `false`  |
+| `checkout.repository`                    | The repository to checkout.                 |                            | `false`  |
+| `checkout.ref`                           | The ref to checkout.                        |                            | `false`  |
 | `checkout.submodules`                    | Whether to checkout submodules.             | `recurse`                  | `false`  |
-| `checkout.fetch-depth`                   | The depth to fetch the repository.          | `1`                        | `false`  |
+| `checkout.fetch-depth`                   | The depth to fetch the repository.          |                            | `false`  |
 | `setup-java.java-version`                | The Java version to use.                    |                            | `true`   |
 | `setup-java.distribution`                | The Java distribution to use.               | `temurin`                  | `false`  |
 | `setup-gradle.cache-read-only`           | Whether to make the Gradle cache read-only. | `false`                    | `false`  |
