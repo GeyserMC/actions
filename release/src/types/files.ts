@@ -16,3 +16,16 @@ export interface Upload {
     reponse: UploadResponse;
     info: UploadInfo;
 }
+
+export interface Metadata {
+    project: string;
+    repo: string;
+    version: string;
+    number: string | number;
+    changes: {
+        commit: string;
+        summary: string;
+        message: string;
+    }[];
+    downloads: Record<string, FileInfo>;
+}

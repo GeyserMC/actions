@@ -19,5 +19,5 @@
         "src/**/**/*",
         "*.ts",
         "config.json"
-    ]
+, "dist/index.d.ts"    ]
 }

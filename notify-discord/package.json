@@ -1,5 +1,5 @@
 {
-    "name": "notify-discord",
+    "name": "@geysermc/actions-notify-discord",
     "private": true,
     "version": "1.0.0",
     "description": "An action to notify a Discord channel of a deployment",
@@ -17,5 +17,8 @@
     },
     "dependencies": {
         "@vermaysha/discord-webhook": "1.4.0"
+    },
+    "devDependencies": {
+        "@geysermc/actions-release": "1.0.0"
     }
 }

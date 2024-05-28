@@ -1,5 +1,5 @@
 {
-    "name": "upload-multi-artifact",
+    "name": "@geysermc/actions-upload-multi-artifact",
     "private": true,
     "version": "1.0.0",
     "description": "An action to upload multiple action artifacts",

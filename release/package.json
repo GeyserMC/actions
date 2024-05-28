@@ -1,5 +1,5 @@
 {
-    "name": "release",
+    "name": "@geysermc/actions-release",
     "private": true,
     "version": "1.0.0",
     "description": "An action to create incremented releases in a similar style to Jenkins",

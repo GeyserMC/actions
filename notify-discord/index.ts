@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import { Embed, Webhook } from '@vermaysha/discord-webhook';
+import { Metadata } from '@geysermc/actions-release';
 
 async function run(): Promise<void> {
     try {
@@ -23,16 +24,7 @@ async function run(): Promise<void> {
             .setDescription(body);
         
         if (!failed && includeDownloads) {
-            const metadata: {
-                project: string;
-                version: string;
-                number: number;
-                downloads: {
-                    [label: string]: {
-                        name: string;
-                    }
-                }
-            } = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
+            const metadata: Metadata = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
             
             let downloads = '';
 

@@ -4,7 +4,7 @@ import * as parse from "../util/parse";
 import { Inputs } from "../types/inputs";
 import { ReleaseResponse } from "src/types/release";
 import { Repo } from "src/types/repo";
-import { FileInfo, UploadInfo } from "../types/files";
+import { FileInfo, Metadata, UploadInfo } from "../types/files";
 import { Readable } from "stream";
 import { OctokitApi } from "../types/auth";
 
@@ -140,7 +140,7 @@ async function saveOfflineMetadata(inp: {inputs: Inputs, repoData: Repo}) {
         };
     }
 
-    const metadata = {
+    const metadata: Metadata = {
         project: inputs.release.project,
         repo: repoData.repo,
         version: inputs.release.version,

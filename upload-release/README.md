@@ -23,6 +23,7 @@ This action requires an instance of the [GeyserMC Downloads API](https://github.
 
 | Input        | Description                                    | Default         | Required |
 | ------------ | -----------------------------------------------| --------------- | -------- |
+| `changelog`  | The changelog for the actions summary.         |                 | `false`  |
 | `directory`  | The directory to upload the files to.          | `auto`          | `false`  |
 | `files`      | The files to upload.                           |                 | `true`   |
 | `host`       | The hostname to connect to over SCP.           |                 | `true`   |

@@ -1,5 +1,5 @@
 {
-    "name": "upload-release",
+    "name": "@geysermc/actions-upload-release",
     "private": true,
     "version": "1.0.0",
     "description": "An action to upload releases via SCP",
@@ -17,5 +17,8 @@
     },
     "dependencies": {
         "node-scp": "0.0.23"
+    },
+    "devDependencies": {
+        "@geysermc/actions-release": "1.0.0"
     }
 }

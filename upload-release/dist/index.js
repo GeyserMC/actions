@@ -50246,10 +50246,10 @@ const node_scp_1 = __nccwpck_require__(4940);
 async function run() {
     let client = null;
     try {
-        const metadata = core.getInput('metadata');
-        if (!fs.existsSync(metadata)) {
-            console.log(`Metadata file ${metadata} does not exist`);
-            core.setFailed(`Metadata file ${metadata} does not exist`);
+        const metadataFile = core.getInput('metadata');
+        if (!fs.existsSync(metadataFile)) {
+            console.log(`Metadata file ${metadataFile} does not exist`);
+            core.setFailed(`Metadata file ${metadataFile} does not exist`);
         }
         let directory = core.getInput('directory');
         if (directory === 'auto') {
@@ -50280,10 +50280,27 @@ async function run() {
             console.log(`Uploaded ${file}`);
         }
         console.log(`Uploading metadata`);
-        await client.uploadFile(metadata, path.join(directory, path.basename(metadata)));
+        await client.uploadFile(metadataFile, path.join(directory, path.basename(metadataFile)));
         console.log(`Uploaded metadata`);
         client.close();
         console.log(`Release uploaded`);
+        const metadata = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
+        const downloadsApiUrl = core.getInput('downloadsApiUrl');
+        const changelog = core.getInput('changelog');
+        core.summary
+            .addHeading('Release Information', 2)
+            .addHeading('Metadata', 3)
+            .addDetails('Expand Metadata', `\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\``);
+        if (changelog !== '') {
+            core.summary.addRaw(changelog, true);
+        }
+        core.summary
+            .addHeading(`Downloads (Build #${metadata.number})`, 3)
+            .addList(Object.keys(metadata.downloads).map(label => {
+            const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
+            return `[${metadata.downloads[label].name}](${url})`;
+        }))
+            .write();
     }
     catch (error) {
         if (client)

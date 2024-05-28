@@ -1,5 +1,5 @@
 {
-    "name": "previous-release",
+    "name": "@geysermc/actions-previous-release",
     "private": true,
     "version": "1.0.0",
     "description": "An action to get outputs for the previous release",
