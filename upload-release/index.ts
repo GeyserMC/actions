@@ -61,7 +61,7 @@ async function run(): Promise<void> {
         core.summary
             .addHeading('Release Information', 2)
             .addHeading('Metadata', 3)
-            .addDetails('Expand Metadata', `\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\``);
+            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`);
         
         if (changelog !== '') {
             core.summary.addRaw(changelog, true);
@@ -69,11 +69,14 @@ async function run(): Promise<void> {
 
         core.summary
             .addHeading(`Downloads (Build #${metadata.number})`, 3)
-            .addList(Object.keys(metadata.downloads).map(label => {
-                const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
-                return `[${metadata.downloads[label].name}](${url})`;
-            }))
-            .write();
+            .addBreak();
+
+        for (const label in metadata.downloads) {
+            const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
+            core.summary.addRaw(`- [${metadata.downloads[label].name}](${url})`, true);
+        }
+
+        core.summary.addBreak().write();
         
     } catch (error: any) {
         if (client) client.close();
