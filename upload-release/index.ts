@@ -59,24 +59,25 @@ async function run(): Promise<void> {
         const changelog = core.getInput('changelog');
 
         core.summary
-            .addHeading('Release Information', 2)
-            .addHeading('Metadata', 3)
-            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`);
+            .addRaw('## Release Information', true)
+            .addRaw('### Metadata', true)
+            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`)
+            .addRaw(`\n`);
         
         if (changelog !== '') {
-            core.summary.addRaw(changelog, true);
+            core.summary
+                .addRaw(changelog, true)
+                .addRaw(`\n`);
         }
 
-        core.summary
-            .addHeading(`Downloads (Build #${metadata.number})`, 3)
-            .addBreak();
+        core.summary.addRaw(`### Downloads (Build #${metadata.number})`, true);
 
         for (const label in metadata.downloads) {
             const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
             core.summary.addRaw(`- [${metadata.downloads[label].name}](${url})`, true);
         }
 
-        core.summary.addBreak().write();
+        core.summary.addRaw(`\n`).write();
         
     } catch (error: any) {
         if (client) client.close();
