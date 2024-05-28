@@ -11,7 +11,7 @@ inputs:
     checkout_submodules:
         description: Whether to checkout submodules.
         required: false
-        default: recurse
+        default: recursive
     checkout_fetch-depth:
         description: The depth to fetch the repository.
         required: false
