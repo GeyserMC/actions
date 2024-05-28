@@ -1,0 +1,58 @@
+name: upload-preview
+on:
+    workflow_call:
+        inputs:
+            build:
+                required: true
+                description: Build number for the release.
+                type: string
+            files:
+                required: true
+                description: Files to upload to the Downloads API.
+                type: string
+            project:
+                required: true
+                description: Project to upload to the Downloads API.
+                type: string
+            runId:
+                required: true
+                description: Run ID of the workflow that uploaded the files.
+                type: string
+            version:
+                required: true
+                description: Version under which to upload to the Downloads API.
+                type: string
+jobs:
+    upload:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download Artifacts
+              # See https://github.com/actions/download-artifact/commits
+              uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+              with:
+                  run-id: '${{ inputs.runId }}'
+                  github-token: '${{ secrets.GITHUB_TOKEN }}'
+                  merge-multiple: true
+            - name: Get Preview Metadata
+              if: success()
+              uses: GeyserMC/actions/release@master
+              id: metadata
+              with:
+                  appID: '${{ secrets.RELEASE_APP_ID }}'
+                  appPrivateKey: '${{ secrets.RELEASE_APP_PK }}'
+                  files: '${{ inputs.files }}'
+                  releaseEnabled: false
+                  saveMetadata: true
+                  updateReleaseData: false
+                  releaseProject: '${{ inputs.project }}'
+                  releaseVersion: '${{ inputs.version }}'
+                  tagBase: '${{ inputs.build }}'
+            - name: Publish to Downloads API
+              if: success()
+              uses: GeyserMC/actions/upload-release@master
+              with:
+                  username: '${{ vars.DOWNLOADS_USERNAME }}'
+                  privateKey: '${{ secrets.DOWNLOADS_PRIVATE_KEY }}'
+                  host: '${{ secrets.DOWNLOADS_SERVER_IP }}'
+                  files: '${{ inputs.files }}'
+                  changelog: '${{ steps.metadata.outputs.body }}'
