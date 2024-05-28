@@ -22,7 +22,9 @@ async function run(): Promise<void> {
 
         const files = core.getInput('files');
         let uploads: string[] = files.includes('\n') ? files.split('\n') : files.split(',');
-        uploads = uploads.map(s => s.trim()).filter(s => s !== '');
+        uploads = uploads
+            .map(s => s.trim()).filter(s => s !== '')
+            .map(s => s.includes(':') ? s.split(':').slice(1).join(':') : s);
 
         client = await Client({
             host: core.getInput('host'),
