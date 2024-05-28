@@ -50290,17 +50290,18 @@ async function run() {
         core.summary
             .addHeading('Release Information', 2)
             .addHeading('Metadata', 3)
-            .addDetails('Expand Metadata', `\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\``);
+            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`);
         if (changelog !== '') {
             core.summary.addRaw(changelog, true);
         }
         core.summary
             .addHeading(`Downloads (Build #${metadata.number})`, 3)
-            .addList(Object.keys(metadata.downloads).map(label => {
+            .addBreak();
+        for (const label in metadata.downloads) {
             const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
-            return `[${metadata.downloads[label].name}](${url})`;
-        }))
-            .write();
+            core.summary.addRaw(`- [${metadata.downloads[label].name}](${url})`, true);
+        }
+        core.summary.addBreak().write();
     }
     catch (error) {
         if (client)
