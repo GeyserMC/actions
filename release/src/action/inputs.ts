@@ -70,7 +70,7 @@ async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: 
 
     const { owner, repo, branch } = repoData;
 
-    const body = await getReleaseBody({repoData, changes});
+    const body = await getReleaseBody({repoData, changes, success});
     const prerelease = await getPreRelease({repoData});
     const name = getName({tag, branch});
     const draft = core.getBooleanInput('draftRelease');
@@ -196,8 +196,8 @@ async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, r
     }
 }
 
-async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): Promise<string> {
-    const { repoData, changes } = inp;
+async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[], success: boolean}): Promise<string> {
+    const { repoData, changes, success } = inp;
 
     const bodyPath = core.getInput('releaseBodyPath');
 
@@ -212,7 +212,7 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[]}): 
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
         const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
 
-        let changelog = `### [Changes](${diffURL}):${os.EOL}`;
+        let changelog = `### [Changes](${diffURL})${success ? '' : ' (Since Last Successful Build)' }:${os.EOL}`;
 
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
