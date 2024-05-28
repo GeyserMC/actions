@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Client, ScpClient } from 'node-scp';
 import { Metadata } from '@geysermc/actions-release';
+import os from 'os';
 
 async function run(): Promise<void> {
     let client: ScpClient | null = null;
@@ -61,13 +62,13 @@ async function run(): Promise<void> {
         core.summary
             .addRaw('## Release Information', true)
             .addRaw('### Metadata', true)
-            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`)
-            .addRaw(`\n`);
+            .addDetails('Expand Metadata', `${os.EOL}${os.EOL}\`\`\`json${os.EOL}${JSON.stringify(metadata, null, 4)}${os.EOL}\`\`\`${os.EOL}${os.EOL}`)
+            .addRaw(os.EOL);
         
         if (changelog !== '') {
             core.summary
                 .addRaw(changelog, true)
-                .addRaw(`\n`);
+                .addRaw(os.EOL);
         }
 
         core.summary.addRaw(`### Downloads (Build #${metadata.number})`, true);
@@ -77,7 +78,7 @@ async function run(): Promise<void> {
             core.summary.addRaw(`- [${metadata.downloads[label].name}](${url})`, true);
         }
 
-        core.summary.addRaw(`\n`).write();
+        core.summary.addRaw(os.EOL).write();
         
     } catch (error: any) {
         if (client) client.close();

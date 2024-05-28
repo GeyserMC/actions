@@ -7,7 +7,7 @@ import { isDeepStrictEqual } from 'util';
 export async function storeReleaseData(inp: {inputs: Inputs, api: OctokitApi, repoData: Repo}) {
     const { inputs, api, repoData } = inp;
 
-    if (!inputs.release.update_release_data) {
+    if (!inputs.release.update_release_data || !inputs.success) {
         return;
     }
 
