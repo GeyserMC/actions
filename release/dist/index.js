@@ -39591,7 +39591,7 @@ function getFiles() {
 async function getRelease(inp) {
     const { api, changes, tag, repoData, success } = inp;
     const { owner, repo, branch } = repoData;
-    const body = await getReleaseBody({ repoData, changes });
+    const body = await getReleaseBody({ repoData, changes, success });
     const prerelease = await getPreRelease({ repoData });
     const name = getName({ tag, branch });
     const draft = core.getBooleanInput('draftRelease');
@@ -39700,7 +39700,7 @@ async function getChanges(inp) {
     }
 }
 async function getReleaseBody(inp) {
-    const { repoData, changes } = inp;
+    const { repoData, changes, success } = inp;
     const bodyPath = core.getInput('releaseBodyPath');
     if (!fs_1.default.existsSync(bodyPath)) {
         // Generate release body ourselves
@@ -39711,7 +39711,7 @@ async function getReleaseBody(inp) {
         const firstCommit = changes[0].commit.slice(0, 7);
         const lastCommit = changes[changes.length - 1].commit.slice(0, 7);
         const diffURL = `${url}/${owner}/${repo}/compare/${firstCommit}^...${lastCommit}`;
-        let changelog = `### [Changes](${diffURL}):${os_1.default.EOL}`;
+        let changelog = `### [Changes](${diffURL})${success ? '' : ' (Since Last Successful Build)'}:${os_1.default.EOL}`;
         const changeLimit = core.getInput('releaseChangeLimit');
         let truncatedChanges = 0;
         if (parse.isPosInteger(changeLimit)) {
