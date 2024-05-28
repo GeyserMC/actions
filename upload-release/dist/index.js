@@ -50238,11 +50238,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(5316));
 const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const node_scp_1 = __nccwpck_require__(4940);
+const os_1 = __importDefault(__nccwpck_require__(2037));
 async function run() {
     let client = null;
     try {
@@ -50290,19 +50294,19 @@ async function run() {
         core.summary
             .addRaw('## Release Information', true)
             .addRaw('### Metadata', true)
-            .addDetails('Expand Metadata', `\n\n\`\`\`json\n${JSON.stringify(metadata, null, 4)}\n\`\`\`\n\n`)
-            .addRaw(`\n`);
+            .addDetails('Expand Metadata', `${os_1.default.EOL}${os_1.default.EOL}\`\`\`json${os_1.default.EOL}${JSON.stringify(metadata, null, 4)}${os_1.default.EOL}\`\`\`${os_1.default.EOL}${os_1.default.EOL}`)
+            .addRaw(os_1.default.EOL);
         if (changelog !== '') {
             core.summary
                 .addRaw(changelog, true)
-                .addRaw(`\n`);
+                .addRaw(os_1.default.EOL);
         }
         core.summary.addRaw(`### Downloads (Build #${metadata.number})`, true);
         for (const label in metadata.downloads) {
             const url = new URL(`${metadata.project}/versions/${metadata.version}/builds/${metadata.number}/downloads/${label}`, downloadsApiUrl).href;
             core.summary.addRaw(`- [${metadata.downloads[label].name}](${url})`, true);
         }
-        core.summary.addRaw(`\n`).write();
+        core.summary.addRaw(os_1.default.EOL).write();
     }
     catch (error) {
         if (client)

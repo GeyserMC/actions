@@ -39934,7 +39934,7 @@ const core_1 = __importDefault(__nccwpck_require__(5316));
 const util_1 = __nccwpck_require__(3837);
 async function storeReleaseData(inp) {
     const { inputs, api, repoData } = inp;
-    if (!inputs.release.update_release_data) {
+    if (!inputs.release.update_release_data || !inputs.success) {
         return;
     }
     const { lastCommit } = repoData;
