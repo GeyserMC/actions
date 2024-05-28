@@ -50261,7 +50261,9 @@ async function run() {
         }
         const files = core.getInput('files');
         let uploads = files.includes('\n') ? files.split('\n') : files.split(',');
-        uploads = uploads.map(s => s.trim()).filter(s => s !== '');
+        uploads = uploads
+            .map(s => s.trim()).filter(s => s !== '')
+            .map(s => s.includes(':') ? s.split(':').slice(1).join(':') : s);
         client = await (0, node_scp_1.Client)({
             host: core.getInput('host'),
             port: core.getInput('port'),
