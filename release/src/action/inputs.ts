@@ -96,7 +96,7 @@ async function getSuccess(inp: {api: OctokitApi, repoData: Repo}): Promise<boole
 
     const runID = process.env.GITHUB_RUN_ID!;
     const statusResponse = await api.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: parseInt(runID) });
-    const success = statusResponse.data.jobs.filter(job => job.conclusion === 'failure').length === 0;
+    const success = statusResponse.data.jobs.filter(job => (job.steps ?? []).filter(step => step.conclusion === 'failure').length > 0 ).length === 0;
     console.log(`Workflow status is: ${success ? 'success' : 'failure'}`);
 
     return success;
