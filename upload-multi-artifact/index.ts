@@ -29,7 +29,7 @@ async function run(): Promise<void> {
             }
 
             console.log(`Uploading artifact ${artifact.name} from ${artifact.path}`);
-            await client.uploadArtifact(artifact.name, [artifact.path], process.cwd());
+            await client.uploadArtifact(artifact.name, [artifact.path], path.dirname(artifact.path));
         }
 
         console.log('Artifact uploads completed');
