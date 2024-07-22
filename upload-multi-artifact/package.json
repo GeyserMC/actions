@@ -16,6 +16,7 @@
         "package:watch": "npm run package -- --watch"
     },
     "dependencies": {
-        "@actions/artifact": "2.1.7"
+        "@actions/artifact": "2.1.7",
+        "glob": "11.0.0"
     }
 }

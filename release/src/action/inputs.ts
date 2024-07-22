@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import { OctokitApi } from '../types/auth';
 import markdownEscape from 'markdown-escape';
+import { globSync } from 'glob';
 
 export async function getInputs(inp: {api: OctokitApi, repoData: Repo}): Promise<Inputs> {
     const { api, repoData } = inp;
@@ -53,16 +54,36 @@ function getFiles(): Inputs.File[] {
         return [];
     }
 
-    return parse.parseMultiInput(files).map(file => {
+    const inputFiles: Inputs.File[] = [];
+
+    for (const file of parse.parseMultiInput(files)) {
+        let label: string;
+        let filePath: string;
+
         if (!file.includes(':')) {
-            return { label: path.parse(file).name.toLowerCase(), path: file };
+            label = path.parse(file).name.toLowerCase();
+            filePath = file;
+        } else {
+            label = file.split(':')[0];
+            filePath = file.split(':').slice(1).join(':');
         }
 
-        const [label, ...paths] = file.split(':');
+        const files = globSync(filePath);
 
-        console.log(`Using label ${label} for file path ${paths.join(':')}`);
-        return { label, path: paths.join(':') };
-    });
+        if (files.length > 1) {
+            for (const file of files) {
+                const fileName = path.parse(file).name;
+                inputFiles.push({ label: `${label}-${fileName}`, path: file });
+            }
+        } else if (files.length === 1) {
+            inputFiles.push({ label, path: files[0] });
+        } else {
+            console.log(`File ${label} not found at ${filePath}`);
+            core.setFailed(`File ${label} not found at ${filePath}`);
+        }
+    }
+
+    return inputFiles;
 }
 
 async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: Inputs.Tag, repoData: Repo, success: boolean}): Promise<Inputs.Release> {
