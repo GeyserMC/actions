@@ -44,8 +44,11 @@ async function run(): Promise<void> {
         }
 
         for (const artifact of artifacts) {
-            console.log(`Uploading artifact ${artifact.name} from ${artifact.path}`);
-            await client.uploadArtifact(artifact.name, [artifact.path], path.dirname(artifact.path));
+            // Replace invalid characters in artifact name
+            const name = artifact.name.replace(/["<>|*?\r\n\\\/]/g, '_');
+
+            console.log(`Uploading artifact ${name} from ${artifact.path}`);
+            await client.uploadArtifact(name, [artifact.path], path.dirname(artifact.path));
         }
 
         console.log('Artifact uploads completed');
