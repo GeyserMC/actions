@@ -20,6 +20,7 @@
         "@octokit/core": "5.0.1",
         "@octokit/plugin-rest-endpoint-methods": "10.0.0",
         "@vermaysha/discord-webhook": "1.4.0",
+        "glob": "11.0.0",
         "markdown-escape": "2.0.0"
     },
     "devDependencies": {

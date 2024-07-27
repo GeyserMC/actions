@@ -39579,14 +39579,22 @@ function getFiles() {
     if (files === '') {
         return [];
     }
-    return parse.parseMultiInput(files).map(file => {
+    const inputFiles = [];
+    for (const file of parse.parseMultiInput(files)) {
+        let label;
+        let filePath;
         if (!file.includes(':')) {
-            return { label: path_1.default.parse(file).name.toLowerCase(), path: file };
+            label = path_1.default.parse(file).name.toLowerCase();
+            filePath = file;
         }
-        const [label, ...paths] = file.split(':');
-        console.log(`Using label ${label} for file path ${paths.join(':')}`);
-        return { label, path: paths.join(':') };
-    });
+        else {
+            label = file.split(':')[0];
+            filePath = file.split(':').slice(1).join(':');
+        }
+        console.log(`Using label ${label} for file path ${filePath}`);
+        inputFiles.push({ label, path: filePath });
+    }
+    return inputFiles;
 }
 async function getRelease(inp) {
     const { api, changes, tag, repoData, success } = inp;
