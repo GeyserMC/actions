@@ -1649,7 +1649,7 @@ class HttpClient {
         }
         const usingSsl = parsedUrl.protocol === 'https:';
         proxyAgent = new undici_1.ProxyAgent(Object.assign({ uri: proxyUrl.href, pipelining: !this._keepAlive ? 0 : 1 }, ((proxyUrl.username || proxyUrl.password) && {
-            token: `${proxyUrl.username}:${proxyUrl.password}`
+            token: `Basic ${Buffer.from(`${proxyUrl.username}:${proxyUrl.password}`).toString('base64')}`
         })));
         this._proxyAgentDispatcher = proxyAgent;
         if (usingSsl && this._ignoreSslError) {
@@ -1763,11 +1763,11 @@ function getProxyUrl(reqUrl) {
     })();
     if (proxyVar) {
         try {
-            return new URL(proxyVar);
+            return new DecodedURL(proxyVar);
         }
         catch (_a) {
             if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
-                return new URL(`http://${proxyVar}`);
+                return new DecodedURL(`http://${proxyVar}`);
         }
     }
     else {
@@ -1825,6 +1825,19 @@ function isLoopbackAddress(host) {
         hostLower.startsWith('127.') ||
         hostLower.startsWith('[::1]') ||
         hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
+class DecodedURL extends URL {
+    constructor(url, base) {
+        super(url, base);
+        this._decodedUsername = decodeURIComponent(super.username);
+        this._decodedPassword = decodeURIComponent(super.password);
+    }
+    get username() {
+        return this._decodedUsername;
+    }
+    get password() {
+        return this._decodedPassword;
+    }
 }
 //# sourceMappingURL=proxy.js.map
 
@@ -6691,16 +6704,14 @@ class Client extends EventEmitter {
     let hostVerifier;
     if (typeof cfg.hostVerifier === 'function') {
       const hashCb = cfg.hostVerifier;
-      let hasher;
+      let hashAlgo;
       if (HASHES.indexOf(cfg.hostHash) !== -1) {
         // Default to old behavior of hashing on user's behalf
-        hasher = createHash(cfg.hostHash);
+        hashAlgo = cfg.hostHash;
       }
       hostVerifier = (key, verify) => {
-        if (hasher) {
-          hasher.update(key);
-          key = hasher.digest('hex');
-        }
+        if (hashAlgo)
+          key = createHash(hashAlgo).update(key).digest('hex');
         const ret = hashCb(key, verify);
         if (ret !== undefined)
           verify(ret);
@@ -11454,7 +11465,7 @@ const {
   Readable: ReadableStream,
   Writable: WritableStream
 } = __nccwpck_require__(2781);
-const { inherits, isDate } = __nccwpck_require__(3837);
+const { inherits, types: { isDate } } = __nccwpck_require__(3837);
 
 const FastBuffer = Buffer[Symbol.species];
 
@@ -21207,7 +21218,7 @@ const BaseKey = {
       this.type === parsed.type
       && this[SYM_PRIV_PEM] === parsed[SYM_PRIV_PEM]
       && this[SYM_PUB_PEM] === parsed[SYM_PUB_PEM]
-      && this[SYM_PUB_SSH] === parsed[SYM_PUB_SSH]
+      && this[SYM_PUB_SSH].equals(parsed[SYM_PUB_SSH])
     );
   },
 };
@@ -52205,7 +52216,7 @@ module.exports = parseParams
 /***/ ((module) => {
 
 "use strict";
-module.exports = {"i8":"1.15.0"};
+module.exports = {"i8":"1.16.0"};
 
 /***/ })
 
