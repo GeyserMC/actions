@@ -39,6 +39,7 @@ runs:
               ref: '${{ inputs.checkout_ref }}'
               submodules: '${{ inputs.checkout_submodules }}'
               fetch-depth: '${{ inputs.checkout_fetch-depth }}'
+              persist-credentials: false
         - name: Validate Gradle Wrapper
           uses: gradle/actions/wrapper-validation@db19848a5fa7950289d3668fb053140cf3028d43
         - name: Setup Java
