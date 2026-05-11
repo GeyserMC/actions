@@ -123,7 +123,7 @@ outputs:
         description: The asset upload URL for the release.
 
 runs:
-    using: node20
+    using: node24
     main: dist/index.js
 
 branding:
