@@ -150,7 +150,7 @@ async function saveOfflineMetadata(inp: {inputs: Inputs, repoData: Repo}) {
     };
 
     const data = Buffer.from(JSON.stringify(metadata, null, 4), 'utf8');
-    fs.writeFileSync('metadata.json', data);
+    fs.writeFileSync(inputs.release.metadata_name, data);
 
-    console.log(`Saved metadata to metadata.json`);
+    console.log(`Saved metadata to ${inputs.release.metadata_name}`);
 }

@@ -76,9 +76,13 @@ inputs:
         required: false
         default: auto
     saveMetadata:
-        description: Whether or not to save the offline release metadata to metadata.json. Defaults to false if not specified.
+        description: Whether or not to save the offline release metadata to metadataName. Defaults to false if not specified.
         required: false
         default: false
+    metadataName:
+        description: The name of the offline release metadata file. Defaults to metadata.json if not specified.
+        required: false
+        default: metadata.json
     tagBase: 
         description: The tag base to use for the release. Auto increment from the last tag will be used if not specified.
         required: false
