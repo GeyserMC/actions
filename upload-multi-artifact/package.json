@@ -9,14 +9,14 @@
         ".": "./dist/index.js"
     },
     "engines": {
-        "node": ">=20"
+        "node": ">=24"
     },
     "scripts": {
         "package": "ncc build index.ts --license licenses.txt",
         "package:watch": "npm run package -- --watch"
     },
     "dependencies": {
-        "@actions/artifact": "2.1.7",
-        "glob": "11.0.0"
+        "@actions/artifact": "6.2.1",
+        "glob": "13.0.6"
     }
 }

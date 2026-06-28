@@ -28,7 +28,7 @@ inputs:
     setup-gradle_gradle-home-cache-cleanup:
         description: Whether to clean up the Gradle home cache.
         required: false
-        default: true
+        default: 'true'
 runs:
     using: composite
     steps:

@@ -5,7 +5,9 @@
         "module": "NodeNext",
         "rootDir": "./",
         "moduleResolution": "NodeNext",
-        "baseUrl": "./",
+        "types": [
+            "node"
+        ],
         "sourceMap": true,
         "outDir": "./dist",
         "noImplicitAny": true,

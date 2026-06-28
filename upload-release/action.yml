@@ -26,7 +26,7 @@ inputs:
     port:
         description: The port to connect to over SCP.
         required: false
-        default: 22
+        default: '22'
     privateKey:
         description: The private key to use for the SCP connection.
         required: true
@@ -35,7 +35,7 @@ inputs:
         required: true
 
 runs:
-    using: node20
+    using: node24
     main: dist/index.js
 
 branding:
