@@ -2,6 +2,7 @@ export interface Inputs {
     readonly files: Inputs.File[];
     readonly changes: Inputs.Change[];
     readonly tag: Inputs.Tag;
+    readonly additionalTags: string[];
     readonly release: Inputs.Release;
     readonly success: boolean;
 }
@@ -12,6 +13,7 @@ export namespace Inputs {
         readonly prefix: string;
         readonly increment: boolean;
         readonly separator: string;
+        readonly formatted: string;
     }
 
     export interface File {
@@ -39,6 +41,8 @@ export namespace Inputs {
         readonly make_latest: "true" | "false" | "legacy" | undefined;
         readonly info: boolean;
         readonly hook: string | undefined;
+        readonly hookIncludeAssets: boolean;
+        readonly hookIncludeThumbnail: boolean;
         readonly metadata: boolean;
         readonly metadata_name: string;
         readonly update_release_data: boolean;

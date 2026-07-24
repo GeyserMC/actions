@@ -94,7 +94,7 @@ async function uploadReleaseData(inp: {api: OctokitApi, inputs: Inputs, release:
         branch,
         id: release.data.id.toString(),
         build: parse.isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
-        tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
+        tag: inputs.tag.formatted,
         timestamp: Date.now().toString(),
         prerelease: inputs.release.prerelease,
         changes: inputs.changes,

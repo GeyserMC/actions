@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import fs from 'fs';
 import { Inputs, PreviousRelease } from '../types/inputs';
 import * as parse from '../util/parse';
+import * as strings from '../util/strings';
 import { Repo } from '../types/repo';
 import os from 'os';
 import path from 'path';
@@ -17,11 +18,12 @@ export async function getInputs(inp: {api: OctokitApi, repoData: Repo}): Promise
     const files = getFiles();
     const changes = await getChanges({api, prevRelease, repoData});
     const tag = await getTag({repoData, prevRelease});
+    const additionalTags = getAdditionalTags();
     const success = await getSuccess({api, repoData});
     const release = await getRelease({api, changes, tag, repoData, success});
 
-    console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
-    return { files, changes, tag, release, success };
+    console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.formatted}, release ${release.name}`);
+    return { files, changes, tag, additionalTags, release, success };
 }
 
 async function getPrevRelease(inp: {api: OctokitApi, repoData: Repo}): Promise<PreviousRelease> {
@@ -99,7 +101,9 @@ async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: 
     const discussion_category_name = await getDiscussionCategory({api, owner, repo});
     const make_latest = getMakeLatest({prerelease, success});
     const info = core.getBooleanInput('includeReleaseInfo');
-    const hook = core.getInput('discordWebhook') == 'none' ? undefined : core.getInput('discordWebhook');
+    const hook = core.getInput('discordWebhook') === 'none' ? undefined : core.getInput('discordWebhook');
+    const hookIncludeAssets = core.getInput('discordWebhookIncludeAssets') === 'true';
+    const hookIncludeThumbnail = core.getInput('discordWebhookIncludeThumbnail') === 'true';
     const enabled = core.getBooleanInput('releaseEnabled');
     const metadata = core.getBooleanInput('saveMetadata');
     const metadata_name = core.getInput("metadataName");
@@ -108,7 +112,7 @@ async function getRelease(inp: {api: OctokitApi, changes: Inputs.Change[], tag: 
     const version = core.getInput('releaseVersion') === 'auto' ? tag.base : core.getInput('releaseVersion');
 
     console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, enabled, metadata, metadata_name, update_release_data, project, version };
+    return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook, hookIncludeAssets, hookIncludeThumbnail, enabled, metadata, metadata_name, update_release_data, project, version };
 }
 
 async function getSuccess(inp: {api: OctokitApi, repoData: Repo}): Promise<boolean> {
@@ -137,34 +141,41 @@ async function getSuccess(inp: {api: OctokitApi, repoData: Repo}): Promise<boole
 
     return success;
 }
+
 async function getTag(inp: {repoData: Repo, prevRelease: PreviousRelease}): Promise<Inputs.Tag> {
     const { repoData, prevRelease } = inp;
 
     const { branch } = repoData;
 
-    const base = core.getInput('tagBase');
+    const baseInput = core.getInput('tagBase');
     const separator = core.getInput('tagSeparator');
     const prefix = core.getInput('tagPrefix') == 'auto' ? branch : core.getInput('tagPrefix');
     const increment = core.getBooleanInput('tagIncrement');
+    const template = core.getInput('tag');
 
-    if (base === 'auto') {
+    let base = '1';
+    if (baseInput === 'auto') {
         if (prevRelease.baseTag != null && parse.isPosInteger(prevRelease.baseTag)) {
-            const buildNumber = parseInt(prevRelease.baseTag) + (increment ? 1 : 0);
-            return { base: buildNumber.toString(), prefix, separator, increment };
+            base = (parseInt(prevRelease.baseTag) + (increment ? 1 : 0)).toString();
         }
-
-        if (prevRelease.baseTag == null) {
-            return { base: '1', prefix, separator, increment };
-        }
+    } else if (parse.isPosInteger(baseInput) && increment) {
+        base = (parseInt(baseInput) + 1).toString();
     }
 
-    if (parse.isPosInteger(base) && increment) {
-        const buildNumber = parseInt(base) + 1;
-        return { base: buildNumber.toString(), prefix, separator, increment };
+    const formatted = strings.formatString(template, { base: base, prefix, separator });
+
+    console.log(`Using release tag ${formatted} with increment: ${increment}`);
+    return { base, prefix, separator, increment, formatted };
+}
+
+function getAdditionalTags(): string[] {
+    const additionalTags = core.getInput('tagAdditional');
+
+    if (additionalTags === '') {
+        return [];
     }
 
-    console.log(`Using release tag ${prefix}${separator}${base} with increment: ${increment}`);
-    return { base, prefix, separator, increment };
+    return parse.parseMultiInput(additionalTags);
 }
 
 async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, repoData: Repo}): Promise<Inputs.Change[]> {
@@ -221,7 +232,12 @@ async function getChanges(inp: {api: OctokitApi, prevRelease: PreviousRelease, r
 async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[], success: boolean}): Promise<string> {
     const { repoData, changes, success } = inp;
 
-    const bodyPath = core.getInput('releaseBodyPath');
+    let bodyPrefix = core.getInput('releaseBodyPrefix');
+    const bodyPath = core.getInput('releaseBody');
+
+    if (bodyPrefix) {
+        bodyPrefix = `${bodyPrefix}${os.EOL}`;
+    }
 
     if (!fs.existsSync(bodyPath)) {
         // Generate release body ourselves
@@ -266,10 +282,10 @@ async function getReleaseBody(inp: {repoData: Repo, changes: Inputs.Change[], su
             changelog += `... and ${truncatedChanges} more${os.EOL}`;
         }
 
-        return changelog;
+        return `${bodyPrefix}${changelog}`;
     }
 
-    return fs.readFileSync(bodyPath, { encoding: 'utf-8' });
+    return `${bodyPrefix}${fs.readFileSync(bodyPath, { encoding: 'utf-8' })}`;
 }
 
 async function getPreRelease(inp: {repoData: Repo}): Promise<boolean> {

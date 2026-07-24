@@ -22,14 +22,16 @@ export async function sendWebhook(inp: {inputs: Inputs, api: OctokitApi, repoDat
     const updatedRelease = await api.rest.repos.getRelease({ owner, repo, release_id: releaseResponse.data.id });
     const tag = updatedRelease.data.tag_name;
 
-    const thumbnail= `https://opengraph.githubassets.com/1/${owner}/${repo}/releases/tag/${tag}`;
+    const thumbnail = `https://opengraph.githubassets.com/1/${owner}/${repo}/releases/tag/${tag}`;
 
     let assets = '';
-    for (const asset of updatedRelease.data.assets) {
-        assets += `- :page_facing_up: [${asset.name}](${asset.browser_download_url})\n`;
+    if (inputs.release.hookIncludeAssets) {
+        for (const asset of updatedRelease.data.assets) {
+            assets += `- :page_facing_up: [${asset.name}](${asset.browser_download_url})\n`;
+        }
+        assets += `- :package: [Source code (zip)](${updatedRelease.data.zipball_url})\n`;
+        assets += `- :package: [Source code (tar.gz)](${updatedRelease.data.tarball_url})\n`;
     }
-    assets += `- :package: [Source code (zip)](${updatedRelease.data.zipball_url})\n`;
-    assets += `- :package: [Source code (tar.gz)](${updatedRelease.data.tarball_url})\n`;
 
     const time = Math.floor(new Date(updatedRelease.data.created_at).getTime() / 1000);
     const author = updatedRelease.data.author.type === 'User' ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace('[bot]', '');
@@ -48,22 +50,26 @@ export async function sendWebhook(inp: {inputs: Inputs, api: OctokitApi, repoDat
         .setColor(color)
         .setTitle(inputs.release.name)
         .setUrl(updatedRelease.data.html_url)
-        .setDescription(inputs.release.body)
-        .addField({ name: 'Assets', value: assets, inline: false })
-        .addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
+        .setDescription(inputs.release.body);
+
+    if (inputs.release.hookIncludeAssets) {
+        embed.addField({ name: 'Assets', value: assets, inline: false });
+    }
+
+    embed.addField({ name: '', value: `:watch: <t:${time}:R>`, inline: true })
         .addField({ name: '', value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true })
         .addField({ name: '', value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true })
         .addField({ name: '', value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true })
         .setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url })
 
-    if (thumbnail) {
+    if (inputs.release.hookIncludeThumbnail) {
         embed.setImage({ url: thumbnail });
     }
 
     try {
         new Webhook(inputs.release.hook)
-            .setUsername('GitHub Release Action')
-            .setAvatarUrl('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png')
+            .setUsername('GitHub Actions')
+            .setAvatarUrl('https://media.discordapp.net/attachments/472838100951760928/1244710120424738976/github-actions-logo.png')
             .addEmbed(embed)
             .send();
     } catch (error) {

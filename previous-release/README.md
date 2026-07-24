@@ -32,8 +32,9 @@ or
 
 ## Outputs
 
-| Output            | Description                                              |
-| ----------------- | -------------------------------------------------------- |
-| `curentRelease`   | If numeric, the incremented tag of the previous release. |
-| `previousRelease` | The tag of the previous release.                         |
-| `previousCommit`  | The commit of the previous release.                      |
+| Output            | Description                                                   |
+|-------------------|---------------------------------------------------------------|
+| `curentRelease`   | If numeric, the incremented base tag of the previous release. |
+| `previousRelease` | The base tag of the previous release.                         |
+| `previousTag`     | The tag of the previous release.                              |
+| `previousCommit`  | The commit of the previous release.                           |

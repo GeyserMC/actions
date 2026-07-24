@@ -1,6 +1,5 @@
 import { BaseRepo } from "../types/repo";
 import * as parse from '../util/parse';
-import * as core from '@actions/core'
 
 export function getRepoData(): BaseRepo {
     if(!process.env.GITHUB_REPOSITORY) {

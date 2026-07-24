@@ -34,7 +34,7 @@ async function checkStoreReleaseData(inp: {inputs: Inputs, api: OctokitApi, repo
     const { inputs, api, repoData, lastCommit } = inp;
 
     const { owner, repo, branch } = repoData;
-    const newEntry = { c: lastCommit, t: inputs.tag.base };
+    const newEntry = { c: lastCommit, t: inputs.tag.base, full_tag: inputs.tag.formatted };
 
     const variable = 'releaseAction_prevRelease';
     const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });

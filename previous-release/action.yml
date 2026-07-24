@@ -14,8 +14,10 @@ inputs:
 
 outputs:
     curentRelease:
-        description: If numeric, the incremented tag of the previous release.
+        description: If numeric, the incremented base tag of the previous release.
     previousRelease:
+        description: The base tag of the previous release.
+    previousTag:
         description: The tag of the previous release.
     previousCommit:
         description: The commit of the previous release.
