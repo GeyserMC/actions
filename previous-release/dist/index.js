@@ -24232,19 +24232,24 @@ async function run() {
     const branch = getInput("branch") || process.env.GITHUB_REF_NAME;
     let data = {};
     if (getInput("appID") && getInput("appPrivateKey")) {
-      data = await getLivePrevReleaseData();
+      try {
+        data = await getLivePrevReleaseData();
+      } catch (ignored) {
+      }
     } else {
       data = JSON.parse(getInput("data") || "{}");
     }
     if (!data[branch]) {
       setOutput("previousRelease", "0");
+      setOutput("previousTag", "");
       setOutput("previousCommit", "");
       setOutput("curentRelease", "1");
       return;
     }
-    const { c: commit, t: tag } = data[branch];
+    const { c: commit, t: tag, full_tag } = data[branch];
     setOutput("previousCommit", commit);
     setOutput("previousRelease", tag);
+    setOutput("previousTag", full_tag ? full_tag : "");
     const tagNum = parseInt(tag);
     if (!isNaN(tagNum)) {
       setOutput("curentRelease", tagNum + 1);

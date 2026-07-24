@@ -36662,6 +36662,14 @@ var hashSha256 = (filePath) => new Promise((resolve, reject) => {
   rs2.on("end", () => resolve(hash.digest("hex")));
 });
 
+// src/util/strings.ts
+function formatString(input, variables) {
+  for (const key in variables) {
+    input = input.replaceAll(`\${${key}}`, variables[key]);
+  }
+  return input;
+}
+
 // src/action/inputs.ts
 var import_os3 = __toESM(require("os"));
 var import_path = __toESM(require("path"));
@@ -39658,10 +39666,11 @@ async function getInputs(inp) {
   const files = getFiles();
   const changes = await getChanges({ api, prevRelease, repoData });
   const tag = await getTag({ repoData, prevRelease });
+  const additionalTags = getAdditionalTags();
   const success = await getSuccess({ api, repoData });
   const release = await getRelease({ api, changes, tag, repoData, success });
-  console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.base}, release ${release.name}`);
-  return { files, changes, tag, release, success };
+  console.log(`Using ${files.length} files, ${changes.length} changes, tag ${tag.formatted}, release ${release.name}`);
+  return { files, changes, tag, additionalTags, release, success };
 }
 async function getPrevRelease(inp) {
   const { api, repoData } = inp;
@@ -39722,7 +39731,9 @@ async function getRelease(inp) {
   const discussion_category_name = await getDiscussionCategory({ api, owner, repo });
   const make_latest = getMakeLatest({ prerelease, success });
   const info = getBooleanInput("includeReleaseInfo");
-  const hook6 = getInput("discordWebhook") == "none" ? void 0 : getInput("discordWebhook");
+  const hook6 = getInput("discordWebhook") === "none" ? void 0 : getInput("discordWebhook");
+  const hookIncludeAssets = getInput("discordWebhookIncludeAssets") === "true";
+  const hookIncludeThumbnail = getInput("discordWebhookIncludeThumbnail") === "true";
   const enabled = getBooleanInput("releaseEnabled");
   const metadata = getBooleanInput("saveMetadata");
   const metadata_name = getInput("metadataName");
@@ -39730,7 +39741,7 @@ async function getRelease(inp) {
   const project = getInput("releaseProject") === "auto" ? repo.toLowerCase() : getInput("releaseProject");
   const version = getInput("releaseVersion") === "auto" ? tag.base : getInput("releaseVersion");
   console.log(`Using release name ${name} with prerelease: ${prerelease}, draft: ${draft}, generate release notes: ${generate_release_notes}, discussion category: ${discussion_category_name}, make latest: ${make_latest}, include release info: ${info}`);
-  return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook: hook6, enabled, metadata, metadata_name, update_release_data, project, version };
+  return { name, body, prerelease, draft, generate_release_notes, discussion_category_name, make_latest, info, hook: hook6, hookIncludeAssets, hookIncludeThumbnail, enabled, metadata, metadata_name, update_release_data, project, version };
 }
 async function getSuccess(inp) {
   const { api, repoData } = inp;
@@ -39756,25 +39767,29 @@ async function getSuccess(inp) {
 async function getTag(inp) {
   const { repoData, prevRelease } = inp;
   const { branch } = repoData;
-  const base = getInput("tagBase");
+  const baseInput = getInput("tagBase");
   const separator = getInput("tagSeparator");
   const prefix = getInput("tagPrefix") == "auto" ? branch : getInput("tagPrefix");
   const increment = getBooleanInput("tagIncrement");
-  if (base === "auto") {
+  const template = getInput("tag");
+  let base = "1";
+  if (baseInput === "auto") {
     if (prevRelease.baseTag != null && isPosInteger(prevRelease.baseTag)) {
-      const buildNumber = parseInt(prevRelease.baseTag) + (increment ? 1 : 0);
-      return { base: buildNumber.toString(), prefix, separator, increment };
+      base = (parseInt(prevRelease.baseTag) + (increment ? 1 : 0)).toString();
     }
-    if (prevRelease.baseTag == null) {
-      return { base: "1", prefix, separator, increment };
-    }
+  } else if (isPosInteger(baseInput) && increment) {
+    base = (parseInt(baseInput) + 1).toString();
   }
-  if (isPosInteger(base) && increment) {
-    const buildNumber = parseInt(base) + 1;
-    return { base: buildNumber.toString(), prefix, separator, increment };
+  const formatted = formatString(template, { base, prefix, separator });
+  console.log(`Using release tag ${formatted} with increment: ${increment}`);
+  return { base, prefix, separator, increment, formatted };
+}
+function getAdditionalTags() {
+  const additionalTags = getInput("tagAdditional");
+  if (additionalTags === "") {
+    return [];
   }
-  console.log(`Using release tag ${prefix}${separator}${base} with increment: ${increment}`);
-  return { base, prefix, separator, increment };
+  return parseMultiInput(additionalTags);
 }
 async function getChanges(inp) {
   const { api, prevRelease, repoData } = inp;
@@ -39818,7 +39833,11 @@ async function getChanges(inp) {
 }
 async function getReleaseBody(inp) {
   const { repoData, changes, success } = inp;
-  const bodyPath = getInput("releaseBodyPath");
+  let bodyPrefix = getInput("releaseBodyPrefix");
+  const bodyPath = getInput("releaseBody");
+  if (bodyPrefix) {
+    bodyPrefix = `${bodyPrefix}${import_os3.default.EOL}`;
+  }
   if (!import_fs4.default.existsSync(bodyPath)) {
     if (changes.length === 0) {
       return "";
@@ -39854,9 +39873,9 @@ async function getReleaseBody(inp) {
     if (truncatedChanges > 0) {
       changelog += `... and ${truncatedChanges} more${import_os3.default.EOL}`;
     }
-    return changelog;
+    return `${bodyPrefix}${changelog}`;
   }
-  return import_fs4.default.readFileSync(bodyPath, { encoding: "utf-8" });
+  return `${bodyPrefix}${import_fs4.default.readFileSync(bodyPath, { encoding: "utf-8" })}`;
 }
 async function getPreRelease(inp) {
   const { repoData } = inp;
@@ -39908,7 +39927,7 @@ async function writeRelease(inp) {
     return null;
   }
   const { owner, repo, branch } = repoData;
-  const tag_name = inputs.tag.prefix + inputs.tag.separator + inputs.tag.base;
+  const tag_name = inputs.tag.formatted;
   const target_commitish = branch;
   const { name, body, draft, prerelease, discussion_category_name, generate_release_notes, make_latest } = inputs.release;
   const releaseResponse = await api.rest.repos.createRelease({
@@ -39924,6 +39943,22 @@ async function writeRelease(inp) {
     generate_release_notes,
     make_latest
   });
+  if (inputs.additionalTags) {
+    for (const i in inputs.additionalTags) {
+      const ref = `tags/${inputs.additionalTags[i]}`;
+      let exists2 = true;
+      try {
+        await api.rest.git.getRef({ owner, repo, ref: `tags/${inputs.additionalTags[i]}` });
+      } catch (error2) {
+        exists2 = false;
+      }
+      if (exists2) {
+        await api.rest.git.updateRef({ owner, repo, ref, sha: repoData.lastCommit });
+      } else {
+        await api.rest.git.createRef({ owner, repo, ref: `refs/${ref}`, sha: repoData.lastCommit });
+      }
+    }
+  }
   console.log(`Release ${releaseResponse.data.id} created at ${releaseResponse.data.html_url}`);
   return releaseResponse;
 }
@@ -39968,7 +40003,7 @@ async function storeReleaseData(inp) {
 async function checkStoreReleaseData(inp) {
   const { inputs, api, repoData, lastCommit } = inp;
   const { owner, repo, branch } = repoData;
-  const newEntry = { c: lastCommit, t: inputs.tag.base };
+  const newEntry = { c: lastCommit, t: inputs.tag.base, full_tag: inputs.tag.formatted };
   const variable = "releaseAction_prevRelease";
   const varResponse = await api.rest.actions.getRepoVariable({ owner, repo, name: variable });
   const value = JSON.parse(varResponse.data.value);
@@ -40056,7 +40091,7 @@ async function uploadReleaseData(inp) {
     branch,
     id: release.data.id.toString(),
     build: isPosInteger(inputs.tag.base) ? parseInt(inputs.tag.base) : inputs.tag.base,
-    tag: inputs.tag.prefix + inputs.tag.separator + inputs.tag.base,
+    tag: inputs.tag.formatted,
     timestamp: Date.now().toString(),
     prerelease: inputs.release.prerelease,
     changes: inputs.changes,
@@ -44949,14 +44984,16 @@ async function sendWebhook(inp) {
   const tag = updatedRelease.data.tag_name;
   const thumbnail = `https://opengraph.githubassets.com/1/${owner}/${repo}/releases/tag/${tag}`;
   let assets = "";
-  for (const asset of updatedRelease.data.assets) {
-    assets += `- :page_facing_up: [${asset.name}](${asset.browser_download_url})
+  if (inputs.release.hookIncludeAssets) {
+    for (const asset of updatedRelease.data.assets) {
+      assets += `- :page_facing_up: [${asset.name}](${asset.browser_download_url})
+`;
+    }
+    assets += `- :package: [Source code (zip)](${updatedRelease.data.zipball_url})
+`;
+    assets += `- :package: [Source code (tar.gz)](${updatedRelease.data.tarball_url})
 `;
   }
-  assets += `- :package: [Source code (zip)](${updatedRelease.data.zipball_url})
-`;
-  assets += `- :package: [Source code (tar.gz)](${updatedRelease.data.tarball_url})
-`;
   const time = Math.floor(new Date(updatedRelease.data.created_at).getTime() / 1e3);
   const author = updatedRelease.data.author.type === "User" ? updatedRelease.data.author.login : updatedRelease.data.author.login.replace("[bot]", "");
   const sha = inputs.changes[inputs.changes.length - 1].commit.slice(0, 7);
@@ -44967,12 +45004,16 @@ async function sendWebhook(inp) {
     name: `${owner}/${repo}`,
     url: `${url}/${owner}/${repo}`,
     icon_url: `${url}/${owner}.png`
-  }).setColor(color).setTitle(inputs.release.name).setUrl(updatedRelease.data.html_url).setDescription(inputs.release.body).addField({ name: "Assets", value: assets, inline: false }).addField({ name: "", value: `:watch: <t:${time}:R>`, inline: true }).addField({ name: "", value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true }).addField({ name: "", value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true }).addField({ name: "", value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true }).setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url });
-  if (thumbnail) {
+  }).setColor(color).setTitle(inputs.release.name).setUrl(updatedRelease.data.html_url).setDescription(inputs.release.body);
+  if (inputs.release.hookIncludeAssets) {
+    embed.addField({ name: "Assets", value: assets, inline: false });
+  }
+  embed.addField({ name: "", value: `:watch: <t:${time}:R>`, inline: true }).addField({ name: "", value: `:label: [${tag}](${url}/${owner}/${repo}/tree/${tag})`, inline: true }).addField({ name: "", value: `:lock_with_ink_pen: [${sha}](${url}/${owner}/${repo}/commit/${sha})`, inline: true }).addField({ name: "", value: `${statusEmoji} [${status}](${url}/${owner}/${repo}/actions/runs/${runID})`, inline: true }).setFooter({ text: `Released by ${author}`, icon_url: updatedRelease.data.author.avatar_url });
+  if (inputs.release.hookIncludeThumbnail) {
     embed.setImage({ url: thumbnail });
   }
   try {
-    new import_discord_webhook.Webhook(inputs.release.hook).setUsername("GitHub Release Action").setAvatarUrl("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png").addEmbed(embed).send();
+    new import_discord_webhook.Webhook(inputs.release.hook).setUsername("GitHub Actions").setAvatarUrl("https://media.discordapp.net/attachments/472838100951760928/1244710120424738976/github-actions-logo.png").addEmbed(embed).send();
   } catch (error2) {
     console.log("Could not send webhook: ", error2);
   }
@@ -44989,7 +45030,7 @@ async function setOutputs(inp) {
     setOutput("releaseAssetsURL", release.data.assets_url);
   }
   setOutput("body", inputs.release.body);
-  const tag = inputs.tag.prefix + inputs.tag.separator + inputs.tag.base;
+  const tag = inputs.tag.formatted;
   setOutput("tag", tag);
   setOutput("tagPrefix", inputs.tag.prefix);
   setOutput("tagBase", inputs.tag.base);
