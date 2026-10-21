@@ -28,3 +28,9 @@ async function run(): Promise<void> {
 }
 
 run();
+
+export * from './src/types/auth';
+export * from './src/types/files';
+export * from './src/types/inputs';
+export * from './src/types/release';
+export * from './src/types/repo';

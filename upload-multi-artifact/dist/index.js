@@ -22981,7 +22981,7 @@ var require_package = __commonJS({
   "../node_modules/@actions/artifact/package.json"(exports2, module2) {
     module2.exports = {
       name: "@actions/artifact",
-      version: "6.2.1",
+      version: "6.3.1",
       preview: true,
       description: "Actions artifact lib",
       keywords: [
@@ -23028,26 +23028,27 @@ var require_package = __commonJS({
         url: "https://github.com/actions/toolkit/issues"
       },
       dependencies: {
-        "@actions/core": "^3.0.0",
-        "@actions/github": "^9.0.0",
-        "@actions/http-client": "^4.0.0",
-        "@azure/storage-blob": "^12.30.0",
+        "@actions/core": "^3.0.1",
+        "@actions/github": "^9.1.1",
+        "@actions/http-client": "^4.0.1",
+        "@azure/storage-blob": "^12.31.0",
         "@octokit/core": "^7.0.6",
         "@octokit/plugin-request-log": "^6.0.0",
-        "@octokit/plugin-retry": "^8.0.0",
-        "@octokit/request": "^10.0.7",
+        "@octokit/plugin-retry": "^8.1.0",
+        "@octokit/request": "^10.0.8",
         "@octokit/request-error": "^7.1.0",
-        "@protobuf-ts/plugin": "^2.2.3-alpha.1",
-        "@protobuf-ts/runtime": "^2.9.4",
+        "@protobuf-ts/runtime": "^2.11.1",
+        "@protobuf-ts/runtime-rpc": "^2.11.1",
         archiver: "^7.0.1",
         "jwt-decode": "^4.0.0",
         "unzip-stream": "^0.3.1"
       },
       devDependencies: {
+        "@protobuf-ts/plugin": "^2.11.1",
         "@types/archiver": "^7.0.0",
         "@types/unzip-stream": "^0.3.4",
-        typedoc: "^0.28.16",
-        "typedoc-plugin-markdown": "^4.9.0",
+        typedoc: "^0.28.19",
+        "typedoc-plugin-markdown": "^4.11.0",
         typescript: "^5.9.3"
       },
       overrides: {
@@ -23955,17 +23956,17 @@ var require_parse_proxy_response = __commonJS({
       return new Promise((resolve2, reject) => {
         let buffersLength = 0;
         const buffers = [];
-        function read2() {
+        function read() {
           const b = socket.read();
           if (b)
             ondata(b);
           else
-            socket.once("readable", read2);
+            socket.once("readable", read);
         }
         function cleanup() {
           socket.removeListener("end", onend);
           socket.removeListener("error", onerror);
-          socket.removeListener("readable", read2);
+          socket.removeListener("readable", read);
         }
         function onend() {
           cleanup();
@@ -23984,7 +23985,7 @@ var require_parse_proxy_response = __commonJS({
           const endOfHeaders = buffered.indexOf("\r\n\r\n");
           if (endOfHeaders === -1) {
             debug2("have not received end of HTTP headers yet...");
-            read2();
+            read();
             return;
           }
           const headerParts = buffered.slice(0, endOfHeaders).toString("ascii").split("\r\n");
@@ -24029,7 +24030,7 @@ var require_parse_proxy_response = __commonJS({
         }
         socket.on("error", onerror);
         socket.on("end", onend);
-        read2();
+        read();
       });
     }
     exports2.parseProxyResponse = parseProxyResponse;
@@ -27385,7 +27386,7 @@ var require_polyfills = __commonJS({
         })(fs8.rename);
       }
       fs8.read = typeof fs8.read !== "function" ? fs8.read : (function(fs$read) {
-        function read2(fd, buffer2, offset, length, position, callback_) {
+        function read(fd, buffer2, offset, length, position, callback_) {
           var callback;
           if (callback_ && typeof callback_ === "function") {
             var eagCounter = 0;
@@ -27399,8 +27400,8 @@ var require_polyfills = __commonJS({
           }
           return fs$read.call(fs8, fd, buffer2, offset, length, position, callback);
         }
-        if (Object.setPrototypeOf) Object.setPrototypeOf(read2, fs$read);
-        return read2;
+        if (Object.setPrototypeOf) Object.setPrototypeOf(read, fs$read);
+        return read;
       })(fs8.read);
       fs8.readSync = typeof fs8.readSync !== "function" ? fs8.readSync : /* @__PURE__ */ (function(fs$readSync) {
         return function(fd, buffer2, offset, length, position) {
@@ -42609,8 +42610,8 @@ var require_commonjs6 = __commonJS({
           return void 0;
         }
         try {
-          const read2 = await this.#fs.promises.readlink(this.fullpath());
-          const linkTarget = (await this.parent.realpath())?.resolve(read2);
+          const read = await this.#fs.promises.readlink(this.fullpath());
+          const linkTarget = (await this.parent.realpath())?.resolve(read);
           if (linkTarget) {
             return this.#linkTarget = linkTarget;
           }
@@ -42634,8 +42635,8 @@ var require_commonjs6 = __commonJS({
           return void 0;
         }
         try {
-          const read2 = this.#fs.readlinkSync(this.fullpath());
-          const linkTarget = this.parent.realpathSync()?.resolve(read2);
+          const read = this.#fs.readlinkSync(this.fullpath());
+          const linkTarget = this.parent.realpathSync()?.resolve(read);
           if (linkTarget) {
             return this.#linkTarget = linkTarget;
           }
@@ -50628,9 +50629,9 @@ var require_lib2 = __commonJS({
   }
 });
 
-// ../node_modules/content-type/dist/index.js
+// ../node_modules/@actions/github/node_modules/content-type/dist/index.js
 var require_dist5 = __commonJS({
-  "../node_modules/content-type/dist/index.js"(exports2) {
+  "../node_modules/@actions/github/node_modules/content-type/dist/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.format = format;
@@ -60095,8 +60096,9 @@ var __awaiter4 = function(thisArg, _arguments, P2, generator) {
 var ArtifactHttpClient = class {
   constructor(userAgent2, maxAttempts, baseRetryIntervalMilliseconds, retryMultiplier) {
     this.maxAttempts = 5;
-    this.baseRetryIntervalMilliseconds = 3e3;
+    this.baseRetryIntervalMilliseconds = 8e3;
     this.retryMultiplier = 1.5;
+    this.retryTimeoutMilliseconds = 12e4;
     const token = getRuntimeToken();
     this.baseUrl = getResultsServiceUrl();
     if (maxAttempts) {
@@ -60136,11 +60138,16 @@ var ArtifactHttpClient = class {
       let attempt = 0;
       let errorMessage = "";
       let rawBody = "";
+      let totalRetryWaitMilliseconds = 0;
       while (attempt < this.maxAttempts) {
         let isRetryable = false;
+        let retryAfterSeconds;
         try {
           const response = yield operation();
           const statusCode = response.message.statusCode;
+          if (statusCode === HttpCodes.TooManyRequests) {
+            retryAfterSeconds = this.getRetryAfterSeconds(response);
+          }
           rawBody = yield response.readBody();
           debug(`[Response] - ${response.message.statusCode}`);
           debug(`Headers: ${JSON.stringify(response.message.headers, null, 2)}`);
@@ -60177,9 +60184,13 @@ var ArtifactHttpClient = class {
         if (attempt + 1 === this.maxAttempts) {
           throw new Error(`Failed to make request after ${this.maxAttempts} attempts: ${errorMessage}`);
         }
-        const retryTimeMilliseconds = this.getExponentialRetryTimeMilliseconds(attempt);
+        const retryTimeMilliseconds = retryAfterSeconds !== void 0 ? retryAfterSeconds * 1e3 : this.getExponentialRetryTimeMilliseconds(attempt);
+        if (totalRetryWaitMilliseconds + retryTimeMilliseconds > this.retryTimeoutMilliseconds) {
+          throw new Error(`Retry wait of ${retryTimeMilliseconds} ms would exceed the maximum total retry wait of ${this.retryTimeoutMilliseconds} ms: ${errorMessage}`);
+        }
         info(`Attempt ${attempt + 1} of ${this.maxAttempts} failed with error: ${errorMessage}. Retrying request in ${retryTimeMilliseconds} ms...`);
         yield this.sleep(retryTimeMilliseconds);
+        totalRetryWaitMilliseconds += retryTimeMilliseconds;
         attempt++;
       }
       throw new Error(`Request failed`);
@@ -60201,6 +60212,17 @@ var ArtifactHttpClient = class {
       HttpCodes.TooManyRequests
     ];
     return retryableStatusCodes.includes(statusCode);
+  }
+  // Only positive integer seconds are supported, not HTTP-date values.
+  getRetryAfterSeconds(response) {
+    var _a;
+    const header = response.message.headers["retry-after"];
+    const value = (_a = Array.isArray(header) ? header[0] : header) === null || _a === void 0 ? void 0 : _a.trim();
+    if (value === void 0 || !/^\d+$/.test(value)) {
+      return void 0;
+    }
+    const parsed = parseInt(value, 10);
+    return !isNaN(parsed) && parsed > 0 ? parsed : void 0;
   }
   sleep(milliseconds) {
     return __awaiter4(this, void 0, void 0, function* () {
@@ -71388,21 +71410,8 @@ var BufferScheduler = class {
 var import_node_stream4 = __toESM(require("node:stream"), 1);
 
 // ../node_modules/@azure/storage-common/dist/esm/crc64.js
-var import_node_module = require("node:module");
-var import_node_path2 = require("node:path");
-var import_node_url3 = require("node:url");
-var __isNode__ = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
-var require2;
-var __filename;
-var __dirname;
-if (__isNode__) {
-  require2 = (0, import_node_module.createRequire)(import_meta_url);
-  __filename = (0, import_node_url3.fileURLToPath)(import_meta_url);
-  __dirname = (0, import_node_path2.dirname)(__filename);
-}
 var NativeCRC64 = (() => {
   var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
-  if (typeof __filename !== "undefined") _scriptDir = _scriptDir || __filename;
   return (function(NativeCRC642) {
     NativeCRC642 = NativeCRC642 || {};
     var Module = typeof NativeCRC642 != "undefined" ? NativeCRC642 : {};
@@ -71450,32 +71459,6 @@ var NativeCRC64 = (() => {
     }
     if (ENVIRONMENT_IS_NODE) {
       if (typeof process == "undefined" || !process.release || process.release.name !== "node") throw new Error("not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)");
-      var fs8 = require2("fs");
-      var nodePath = require2("path");
-      if (ENVIRONMENT_IS_WORKER) {
-        scriptDirectory = nodePath.dirname(scriptDirectory) + "/";
-      } else {
-        scriptDirectory = __dirname + "/";
-      }
-      read_ = (filename, binary) => {
-        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        return fs8.readFileSync(filename, binary ? void 0 : "utf8");
-      };
-      readBinary = (filename) => {
-        var ret = read_(filename, true);
-        if (!ret.buffer) {
-          ret = new Uint8Array(ret);
-        }
-        assert(ret.buffer);
-        return ret;
-      };
-      readAsync = (filename, onload, onerror) => {
-        filename = isFileURI(filename) ? new URL(filename) : nodePath.normalize(filename);
-        fs8.readFile(filename, function(err2, data) {
-          if (err2) onerror(err2);
-          else onload(data.buffer);
-        });
-      };
       if (process["argv"].length > 1) {
         thisProgram = process["argv"][1].replace(/\\/g, "/");
       }
@@ -71500,24 +71483,7 @@ var NativeCRC64 = (() => {
         return "[Emscripten Module object]";
       };
     } else if (ENVIRONMENT_IS_SHELL) {
-      if (typeof process == "object" && typeof require2 === "function" || typeof window == "object" || typeof importScripts == "function") throw new Error("not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)");
-      if (typeof read != "undefined") {
-        read_ = function shell_read(f) {
-          return read(f);
-        };
-      }
-      readBinary = function readBinary2(f) {
-        let data;
-        if (typeof readbuffer == "function") {
-          return new Uint8Array(readbuffer(f));
-        }
-        data = read(f, "binary");
-        assert(typeof data == "object");
-        return data;
-      };
-      readAsync = function readAsync2(f, onload, onerror) {
-        setTimeout(() => onload(readBinary(f)), 0);
-      };
+      if (typeof process == "object" && typeof require === "function" || typeof window == "object" || typeof importScripts == "function") throw new Error("not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)");
       if (typeof scriptArgs != "undefined") {
         arguments_ = scriptArgs;
       } else if (typeof arguments != "undefined") {
@@ -71538,55 +71504,7 @@ var NativeCRC64 = (() => {
         typeof printErr != "undefined" ? printErr : print;
       }
     } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
-      if (ENVIRONMENT_IS_WORKER) {
-        scriptDirectory = self.location.href;
-      } else if (typeof document != "undefined" && document.currentScript) {
-        scriptDirectory = document.currentScript.src;
-      }
-      if (_scriptDir) {
-        scriptDirectory = _scriptDir;
-      }
-      if (scriptDirectory.indexOf("blob:") !== 0) {
-        scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf("/") + 1);
-      } else {
-        scriptDirectory = "";
-      }
       if (!(typeof window == "object" || typeof importScripts == "function")) throw new Error("not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)");
-      {
-        read_ = (url2) => {
-          var xhr = new XMLHttpRequest();
-          xhr.open("GET", url2, false);
-          xhr.send(null);
-          return xhr.responseText;
-        };
-        if (ENVIRONMENT_IS_WORKER) {
-          readBinary = (url2) => {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url2, false);
-            xhr.responseType = "arraybuffer";
-            xhr.send(null);
-            return new Uint8Array(
-              /** @type{!ArrayBuffer} */
-              xhr.response
-            );
-          };
-        }
-        readAsync = (url2, onload, onerror) => {
-          var xhr = new XMLHttpRequest();
-          xhr.open("GET", url2, true);
-          xhr.responseType = "arraybuffer";
-          xhr.onload = () => {
-            if (xhr.status == 200 || xhr.status == 0 && xhr.response) {
-              onload(xhr.response);
-              return;
-            }
-            onerror();
-          };
-          xhr.onerror = onerror;
-          xhr.send(null);
-        };
-      }
-      setWindowTitle = (title) => document.title = title;
     } else {
       throw new Error("environment detection error");
     }
@@ -75534,6 +75452,9 @@ function storageRequestFailureDetailsParserPolicy() {
     async sendRequest(request2, next) {
       try {
         const response = await next(request2);
+        if (response.status === 400 && response.bodyAsText?.includes("<Error><Code>InvalidHeaderValue</Code>") && response.bodyAsText.includes("<HeaderName>x-ms-version</HeaderName>")) {
+          response.bodyAsText = response.bodyAsText.replace(/<Message>.*<\/Message>/s, "<Message>The provided service version is not enabled on this storage account. Please see https://learn.microsoft.com/rest/api/storageservices/versioning-for-the-azure-storage-services for additional information.</Message>");
+        }
         return response;
       } catch (err) {
         if (typeof err === "object" && err !== null && err.response && err.response.parsedBody) {
@@ -75583,8 +75504,8 @@ var UserDelegationKeyCredential = class {
 };
 
 // ../node_modules/@azure/storage-blob/dist/esm/utils/constants.js
-var SDK_VERSION3 = "12.33.0";
-var SERVICE_VERSION = "2026-06-06";
+var SDK_VERSION3 = "12.34.0";
+var SERVICE_VERSION = "2026-10-06";
 var BLOCK_BLOB_MAX_UPLOAD_BLOB_BYTES = 256 * 1024 * 1024;
 var BLOCK_BLOB_MAX_STAGE_BLOCK_BYTES = 4e3 * 1024 * 1024;
 var BLOCK_BLOB_MAX_BLOCKS = 5e4;
@@ -76233,8 +76154,12 @@ __export(mappers_exports, {
   ContainerGetPropertiesExceptionHeaders: () => ContainerGetPropertiesExceptionHeaders,
   ContainerGetPropertiesHeaders: () => ContainerGetPropertiesHeaders,
   ContainerItem: () => ContainerItem,
+  ContainerListBlobFlatSegmentApacheArrowExceptionHeaders: () => ContainerListBlobFlatSegmentApacheArrowExceptionHeaders,
+  ContainerListBlobFlatSegmentApacheArrowHeaders: () => ContainerListBlobFlatSegmentApacheArrowHeaders,
   ContainerListBlobFlatSegmentExceptionHeaders: () => ContainerListBlobFlatSegmentExceptionHeaders,
   ContainerListBlobFlatSegmentHeaders: () => ContainerListBlobFlatSegmentHeaders,
+  ContainerListBlobHierarchySegmentApacheArrowExceptionHeaders: () => ContainerListBlobHierarchySegmentApacheArrowExceptionHeaders,
+  ContainerListBlobHierarchySegmentApacheArrowHeaders: () => ContainerListBlobHierarchySegmentApacheArrowHeaders,
   ContainerListBlobHierarchySegmentExceptionHeaders: () => ContainerListBlobHierarchySegmentExceptionHeaders,
   ContainerListBlobHierarchySegmentHeaders: () => ContainerListBlobHierarchySegmentHeaders,
   ContainerProperties: () => ContainerProperties,
@@ -79993,6 +79918,66 @@ var ContainerListBlobFlatSegmentExceptionHeaders = {
     }
   }
 };
+var ContainerListBlobFlatSegmentApacheArrowHeaders = {
+  serializedName: "Container_listBlobFlatSegmentApacheArrowHeaders",
+  type: {
+    name: "Composite",
+    className: "ContainerListBlobFlatSegmentApacheArrowHeaders",
+    modelProperties: {
+      contentType: {
+        serializedName: "content-type",
+        xmlName: "content-type",
+        type: {
+          name: "String"
+        }
+      },
+      clientRequestId: {
+        serializedName: "x-ms-client-request-id",
+        xmlName: "x-ms-client-request-id",
+        type: {
+          name: "String"
+        }
+      },
+      requestId: {
+        serializedName: "x-ms-request-id",
+        xmlName: "x-ms-request-id",
+        type: {
+          name: "String"
+        }
+      },
+      version: {
+        serializedName: "x-ms-version",
+        xmlName: "x-ms-version",
+        type: {
+          name: "String"
+        }
+      },
+      date: {
+        serializedName: "date",
+        xmlName: "date",
+        type: {
+          name: "DateTimeRfc1123"
+        }
+      }
+    }
+  }
+};
+var ContainerListBlobFlatSegmentApacheArrowExceptionHeaders = {
+  serializedName: "Container_listBlobFlatSegmentApacheArrowExceptionHeaders",
+  type: {
+    name: "Composite",
+    className: "ContainerListBlobFlatSegmentApacheArrowExceptionHeaders",
+    modelProperties: {
+      errorCode: {
+        serializedName: "x-ms-error-code",
+        xmlName: "x-ms-error-code",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
 var ContainerListBlobHierarchySegmentHeaders = {
   serializedName: "Container_listBlobHierarchySegmentHeaders",
   type: {
@@ -80049,6 +80034,66 @@ var ContainerListBlobHierarchySegmentExceptionHeaders = {
   type: {
     name: "Composite",
     className: "ContainerListBlobHierarchySegmentExceptionHeaders",
+    modelProperties: {
+      errorCode: {
+        serializedName: "x-ms-error-code",
+        xmlName: "x-ms-error-code",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
+var ContainerListBlobHierarchySegmentApacheArrowHeaders = {
+  serializedName: "Container_listBlobHierarchySegmentApacheArrowHeaders",
+  type: {
+    name: "Composite",
+    className: "ContainerListBlobHierarchySegmentApacheArrowHeaders",
+    modelProperties: {
+      contentType: {
+        serializedName: "content-type",
+        xmlName: "content-type",
+        type: {
+          name: "String"
+        }
+      },
+      clientRequestId: {
+        serializedName: "x-ms-client-request-id",
+        xmlName: "x-ms-client-request-id",
+        type: {
+          name: "String"
+        }
+      },
+      requestId: {
+        serializedName: "x-ms-request-id",
+        xmlName: "x-ms-request-id",
+        type: {
+          name: "String"
+        }
+      },
+      version: {
+        serializedName: "x-ms-version",
+        xmlName: "x-ms-version",
+        type: {
+          name: "String"
+        }
+      },
+      date: {
+        serializedName: "date",
+        xmlName: "date",
+        type: {
+          name: "DateTimeRfc1123"
+        }
+      }
+    }
+  }
+};
+var ContainerListBlobHierarchySegmentApacheArrowExceptionHeaders = {
+  serializedName: "Container_listBlobHierarchySegmentApacheArrowExceptionHeaders",
+  type: {
+    name: "Composite",
+    className: "ContainerListBlobHierarchySegmentApacheArrowExceptionHeaders",
     modelProperties: {
       errorCode: {
         serializedName: "x-ms-error-code",
@@ -80486,6 +80531,34 @@ var BlobDownloadHeaders = {
         xmlName: "x-ms-structured-content-length",
         type: {
           name: "Number"
+        }
+      },
+      accessTier: {
+        serializedName: "x-ms-access-tier",
+        xmlName: "x-ms-access-tier",
+        type: {
+          name: "String"
+        }
+      },
+      accessTierInferred: {
+        serializedName: "x-ms-access-tier-inferred",
+        xmlName: "x-ms-access-tier-inferred",
+        type: {
+          name: "Boolean"
+        }
+      },
+      accessTierChangedOn: {
+        serializedName: "x-ms-access-tier-change-time",
+        xmlName: "x-ms-access-tier-change-time",
+        type: {
+          name: "DateTimeRfc1123"
+        }
+      },
+      smartAccessTier: {
+        serializedName: "x-ms-smart-access-tier",
+        xmlName: "x-ms-smart-access-tier",
+        type: {
+          name: "String"
         }
       },
       errorCode: {
@@ -84103,6 +84176,13 @@ var BlockBlobUploadHeaders = {
           name: "ByteArray"
         }
       },
+      xMsContentCrc64: {
+        serializedName: "x-ms-content-crc64",
+        xmlName: "x-ms-content-crc64",
+        type: {
+          name: "ByteArray"
+        }
+      },
       clientRequestId: {
         serializedName: "x-ms-client-request-id",
         xmlName: "x-ms-client-request-id",
@@ -84215,6 +84295,13 @@ var BlockBlobPutBlobFromUrlHeaders = {
       contentMD5: {
         serializedName: "content-md5",
         xmlName: "content-md5",
+        type: {
+          name: "ByteArray"
+        }
+      },
+      xMsContentCrc64: {
+        serializedName: "x-ms-content-crc64",
+        xmlName: "x-ms-content-crc64",
         type: {
           name: "ByteArray"
         }
@@ -84808,7 +84895,7 @@ var timeoutInSeconds = {
 var version2 = {
   parameterPath: "version",
   mapper: {
-    defaultValue: "2026-06-06",
+    defaultValue: "2026-10-06",
     isConstant: true,
     serializedName: "x-ms-version",
     type: {
@@ -85348,6 +85435,27 @@ var startFrom = {
   mapper: {
     serializedName: "startFrom",
     xmlName: "startFrom",
+    type: {
+      name: "String"
+    }
+  }
+};
+var accept2 = {
+  parameterPath: "accept",
+  mapper: {
+    defaultValue: "application/vnd.apache.arrow.stream,application/xml",
+    isConstant: true,
+    serializedName: "Accept",
+    type: {
+      name: "String"
+    }
+  }
+};
+var endBefore = {
+  parameterPath: ["options", "endBefore"],
+  mapper: {
+    serializedName: "endBefore",
+    xmlName: "endBefore",
     type: {
       name: "String"
     }
@@ -86108,7 +86216,7 @@ var body1 = {
     }
   }
 };
-var accept2 = {
+var accept3 = {
   parameterPath: "accept",
   mapper: {
     defaultValue: "application/xml",
@@ -86932,6 +87040,14 @@ var ContainerImpl = class {
     return this.client.sendOperationRequest({ options }, listBlobFlatSegmentOperationSpec);
   }
   /**
+   * The List Blobs operation returns a list of the blobs under the specified container. This operation
+   * is for Apache Arrow use case so response is returned as raw to be deserialized by the client.
+   * @param options The options parameters.
+   */
+  listBlobFlatSegmentApacheArrow(options) {
+    return this.client.sendOperationRequest({ options }, listBlobFlatSegmentApacheArrowOperationSpec);
+  }
+  /**
    * [Update] The List Blobs operation returns a list of the blobs under the specified container
    * @param delimiter When the request includes this parameter, the operation returns a BlobPrefix
    *                  element in the response body that acts as a placeholder for all blobs whose names begin with the
@@ -86941,6 +87057,19 @@ var ContainerImpl = class {
    */
   listBlobHierarchySegment(delimiter2, options) {
     return this.client.sendOperationRequest({ delimiter: delimiter2, options }, listBlobHierarchySegmentOperationSpec);
+  }
+  /**
+   * [Update] The List Blobs operation returns a list of the blobs under the specified container. This
+   * operation is for Apache Arrow use case so response is returned as raw to be deserialized by the
+   * client.
+   * @param delimiter When the request includes this parameter, the operation returns a BlobPrefix
+   *                  element in the response body that acts as a placeholder for all blobs whose names begin with the
+   *                  same substring up to the appearance of the delimiter character. The delimiter may be a single
+   *                  character or a string.
+   * @param options The options parameters.
+   */
+  listBlobHierarchySegmentApacheArrow(delimiter2, options) {
+    return this.client.sendOperationRequest({ delimiter: delimiter2, options }, listBlobHierarchySegmentApacheArrowOperationSpec);
   }
   /**
    * Returns the sku name and account kind
@@ -87436,6 +87565,42 @@ var listBlobFlatSegmentOperationSpec = {
   isXML: true,
   serializer: xmlSerializer2
 };
+var listBlobFlatSegmentApacheArrowOperationSpec = {
+  path: "/{containerName}",
+  httpMethod: "GET",
+  responses: {
+    200: {
+      bodyMapper: {
+        type: { name: "Stream" },
+        serializedName: "parsedResponse"
+      },
+      headersMapper: ContainerListBlobFlatSegmentApacheArrowHeaders
+    },
+    default: {
+      bodyMapper: StorageError,
+      headersMapper: ContainerListBlobFlatSegmentApacheArrowExceptionHeaders
+    }
+  },
+  queryParameters: [
+    timeoutInSeconds,
+    comp2,
+    prefix,
+    marker,
+    maxPageSize,
+    restype2,
+    include1,
+    startFrom,
+    endBefore
+  ],
+  urlParameters: [url],
+  headerParameters: [
+    version2,
+    requestId,
+    accept2
+  ],
+  isXML: true,
+  serializer: xmlSerializer2
+};
 var listBlobHierarchySegmentOperationSpec = {
   path: "/{containerName}",
   httpMethod: "GET",
@@ -87465,6 +87630,43 @@ var listBlobHierarchySegmentOperationSpec = {
     version2,
     requestId,
     accept1
+  ],
+  isXML: true,
+  serializer: xmlSerializer2
+};
+var listBlobHierarchySegmentApacheArrowOperationSpec = {
+  path: "/{containerName}",
+  httpMethod: "GET",
+  responses: {
+    200: {
+      bodyMapper: {
+        type: { name: "Stream" },
+        serializedName: "parsedResponse"
+      },
+      headersMapper: ContainerListBlobHierarchySegmentApacheArrowHeaders
+    },
+    default: {
+      bodyMapper: StorageError,
+      headersMapper: ContainerListBlobHierarchySegmentApacheArrowExceptionHeaders
+    }
+  },
+  queryParameters: [
+    timeoutInSeconds,
+    comp2,
+    prefix,
+    marker,
+    maxPageSize,
+    restype2,
+    include1,
+    startFrom,
+    endBefore,
+    delimiter
+  ],
+  urlParameters: [url],
+  headerParameters: [
+    version2,
+    requestId,
+    accept2
   ],
   isXML: true,
   serializer: xmlSerializer2
@@ -88711,7 +88913,7 @@ var uploadPagesOperationSpec = {
     transactionalContentMD5,
     transactionalContentCrc64,
     contentType1,
-    accept2,
+    accept3,
     pageWrite,
     ifSequenceNumberLessThanOrEqualTo,
     ifSequenceNumberLessThan,
@@ -89111,7 +89313,7 @@ var appendBlockOperationSpec = {
     transactionalContentMD5,
     transactionalContentCrc64,
     contentType1,
-    accept2,
+    accept3,
     structuredContentLength,
     maxSize,
     appendPosition
@@ -89337,7 +89539,7 @@ var uploadOperationSpec = {
     transactionalContentMD5,
     transactionalContentCrc64,
     contentType1,
-    accept2,
+    accept3,
     structuredContentLength,
     blobType2
   ],
@@ -89436,7 +89638,7 @@ var stageBlockOperationSpec = {
     transactionalContentMD5,
     transactionalContentCrc64,
     contentType1,
-    accept2,
+    accept3,
     structuredContentLength
   ],
   isXML: true,
@@ -89590,7 +89792,7 @@ var StorageClient = class extends ExtendedServiceClient {
     const defaults2 = {
       requestContentType: "application/json; charset=utf-8"
     };
-    const packageDetails = `azsdk-js-azure-storage-blob/12.33.0`;
+    const packageDetails = `azsdk-js-azure-storage-blob/12.34.0`;
     const userAgentPrefix = options.userAgentOptions && options.userAgentOptions.userAgentPrefix ? `${options.userAgentOptions.userAgentPrefix} ${packageDetails}` : `${packageDetails}`;
     const optionsWithDefaults = {
       ...defaults2,
@@ -89602,7 +89804,7 @@ var StorageClient = class extends ExtendedServiceClient {
     };
     super(optionsWithDefaults);
     this.url = url2;
-    this.version = options.version || "2026-06-06";
+    this.version = options.version || "2026-10-06";
     this.service = new ServiceImpl(this);
     this.container = new ContainerImpl(this);
     this.blob = new BlobImpl(this);
@@ -90077,6 +90279,13 @@ var tracingClient = createTracingClient({
   packageVersion: SDK_VERSION3,
   namespace: "Microsoft.Storage"
 });
+
+// ../node_modules/@azure/storage-blob/dist/esm/utils/blobListXmlParser.js
+var listBlobsXmlSerializer = createSerializer(
+  mappers_exports,
+  /* isXml */
+  true
+);
 
 // ../node_modules/@azure/storage-blob/dist/esm/sas/BlobSASPermissions.js
 var BlobSASPermissions = class _BlobSASPermissions {
@@ -92202,6 +92411,43 @@ var BlobDownloadResponse = class {
    */
   get legalHold() {
     return this.originalResponse.legalHold;
+  }
+  /**
+   * The access tier of the blob. Values include premium page-blob tiers and block-blob tiers
+   * such as Hot, Cool, Cold, Archive, and Smart. See
+   * https://learn.microsoft.com/azure/storage/blobs/storage-blob-storage-tiers.
+   *
+   * @readonly
+   */
+  get accessTier() {
+    return this.originalResponse.accessTier;
+  }
+  /**
+   * For page blobs on a premium storage account only. If the access tier is not explicitly set on
+   * the blob, the tier is inferred based on its content length and this header will be returned
+   * with true value.
+   *
+   * @readonly
+   */
+  get accessTierInferred() {
+    return this.originalResponse.accessTierInferred;
+  }
+  /**
+   * The time the tier was changed on the object. This is only returned if the tier on the block
+   * blob was ever set.
+   *
+   * @readonly
+   */
+  get accessTierChangedOn() {
+    return this.originalResponse.accessTierChangedOn;
+  }
+  /**
+   * The underlying tier of a smart tier blob. Only returned if the blob is in Smart tier.
+   *
+   * @readonly
+   */
+  get smartAccessTier() {
+    return this.originalResponse.smartAccessTier;
   }
   get structuredBodyType() {
     return this.originalResponse.structuredBodyType;
@@ -97271,7 +97517,7 @@ function Collection() {
 }
 var before_after_hook_default = { Singular, Collection };
 
-// ../node_modules/@octokit/endpoint/dist-bundle/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/endpoint/dist-bundle/index.js
 var VERSION = "0.0.0-development";
 var userAgent = `octokit-endpoint.js/${VERSION} ${getUserAgent()}`;
 var DEFAULTS = {
@@ -97584,7 +97830,7 @@ function withDefaults(oldDefaults, newDefaults) {
 }
 var endpoint = withDefaults(null, DEFAULTS);
 
-// ../node_modules/@octokit/request/dist-bundle/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/request/dist-bundle/index.js
 var import_content_type = __toESM(require_dist5(), 1);
 
 // ../node_modules/json-with-bigint/json-with-bigint.js
@@ -97690,7 +97936,7 @@ var JSONParse = (text, reviver) => {
   );
 };
 
-// ../node_modules/@octokit/request-error/dist-src/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/request-error/dist-src/index.js
 var RequestError = class extends Error {
   name;
   /**
@@ -97729,7 +97975,7 @@ var RequestError = class extends Error {
   }
 };
 
-// ../node_modules/@octokit/request/dist-bundle/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/request/dist-bundle/index.js
 var VERSION2 = "10.0.10";
 var defaults_default = {
   headers: {
@@ -97907,7 +98153,7 @@ function withDefaults2(oldEndpoint, newDefaults) {
 }
 var request = withDefaults2(endpoint, defaults_default);
 
-// ../node_modules/@octokit/graphql/dist-bundle/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/graphql/dist-bundle/index.js
 var VERSION3 = "0.0.0-development";
 function _buildMessageForResponseErrors(data) {
   return `Request failed due to following response errors:
@@ -98059,10 +98305,10 @@ var createTokenAuth = function createTokenAuth2(token) {
   });
 };
 
-// ../node_modules/@octokit/core/dist-src/version.js
+// ../node_modules/@actions/github/node_modules/@octokit/core/dist-src/version.js
 var VERSION4 = "7.0.6";
 
-// ../node_modules/@octokit/core/dist-src/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/core/dist-src/index.js
 var noop2 = () => {
 };
 var consoleWarn = console.warn.bind(console);
@@ -98196,10 +98442,10 @@ var Octokit = class {
   auth;
 };
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/version.js
 var VERSION5 = "17.0.0";
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/generated/endpoints.js
 var Endpoints = {
   actions: {
     addCustomLabelsToSelfHostedRunnerForOrg: [
@@ -100491,7 +100737,7 @@ var Endpoints = {
 };
 var endpoints_default = Endpoints;
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/endpoints-to-methods.js
 var endpointMethodsMap = /* @__PURE__ */ new Map();
 for (const [scope, endpoints] of Object.entries(endpoints_default)) {
   for (const [methodName, endpoint2] of Object.entries(endpoints)) {
@@ -100614,7 +100860,7 @@ function decorate(octokit, scope, methodName, defaults2, decorations) {
   return Object.assign(withDecorations, requestWithDefaults);
 }
 
-// ../node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js
 function restEndpointMethods(octokit) {
   const api = endpointsToMethods(octokit);
   return {
@@ -100631,7 +100877,7 @@ function legacyRestEndpointMethods(octokit) {
 }
 legacyRestEndpointMethods.VERSION = VERSION5;
 
-// ../node_modules/@octokit/plugin-paginate-rest/dist-bundle/index.js
+// ../node_modules/@actions/github/node_modules/@octokit/plugin-paginate-rest/dist-bundle/index.js
 var VERSION6 = "0.0.0-development";
 function normalizePaginatedListResponse(response) {
   if (!response.data) {
@@ -101017,10 +101263,10 @@ function getRetryOptions(defaultOptions4, retries = defaultMaxRetryNumber, exemp
   return [retryOptions, requestOptions];
 }
 
-// ../node_modules/@octokit/plugin-request-log/dist-src/version.js
+// ../node_modules/@actions/artifact/node_modules/@octokit/plugin-request-log/dist-src/version.js
 var VERSION7 = "6.0.0";
 
-// ../node_modules/@octokit/plugin-request-log/dist-src/index.js
+// ../node_modules/@actions/artifact/node_modules/@octokit/plugin-request-log/dist-src/index.js
 function requestLog(octokit) {
   octokit.hook.wrap("request", (request2, options) => {
     octokit.log.debug("request", options);
@@ -101044,8 +101290,49 @@ function requestLog(octokit) {
 }
 requestLog.VERSION = VERSION7;
 
-// ../node_modules/@octokit/plugin-retry/dist-bundle/index.js
+// ../node_modules/@actions/artifact/node_modules/@octokit/plugin-retry/dist-bundle/index.js
 var import_light = __toESM(require_light(), 1);
+
+// ../node_modules/@actions/artifact/node_modules/@octokit/plugin-retry/node_modules/@octokit/request-error/dist-src/index.js
+var RequestError2 = class extends Error {
+  name;
+  /**
+   * http status code
+   */
+  status;
+  /**
+   * Request options that lead to the error.
+   */
+  request;
+  /**
+   * Response object if a response was received
+   */
+  response;
+  constructor(message, statusCode, options) {
+    super(message, { cause: options.cause });
+    this.name = "HttpError";
+    this.status = Number.parseInt(statusCode);
+    if (Number.isNaN(this.status)) {
+      this.status = 0;
+    }
+    if ("response" in options) {
+      this.response = options.response;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          /(?<! ) .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+  }
+};
+
+// ../node_modules/@actions/artifact/node_modules/@octokit/plugin-retry/dist-bundle/index.js
 var VERSION8 = "0.0.0-development";
 function isRequestError(error2) {
   return error2.request !== void 0;
@@ -101081,7 +101368,7 @@ async function requestWithGraphqlErrorHandling(state3, octokit, request2, option
   if (response.data && response.data.errors && response.data.errors.length > 0 && /Something went wrong while executing your query/.test(
     response.data.errors[0].message
   )) {
-    const error2 = new RequestError(response.data.errors[0].message, 500, {
+    const error2 = new RequestError2(response.data.errors[0].message, 500, {
       request: options,
       response
     });

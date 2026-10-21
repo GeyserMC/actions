@@ -28,7 +28,7 @@ jobs:
         steps:
             - name: Download Artifacts
               # See https://github.com/actions/download-artifact/commits
-              uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+              uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.2.0
               with:
                   run-id: '${{ inputs.runId }}'
                   github-token: '${{ secrets.GITHUB_TOKEN }}'

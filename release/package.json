@@ -12,21 +12,21 @@
         "node": ">=24"
     },
     "scripts": {
-        "package": "esbuild index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --external:*.node --legal-comments=external",
+        "package": "esbuild index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --external:*.node --legal-comments=external && tsc --emitDeclarationOnly --declaration",
         "package:watch": "npm run package -- --watch"
     },
     "dependencies": {
         "@actions/core": "3.0.1",
-        "@octokit/auth-app": "8.2.0",
-        "@octokit/core": "7.0.6",
-        "@octokit/plugin-rest-endpoint-methods": "17.0.0",
+        "@octokit/auth-app": "8.3.1",
+        "@octokit/core": "7.0.8",
+        "@octokit/plugin-rest-endpoint-methods": "18.0.0",
         "@vermaysha/discord-webhook": "1.4.0",
         "glob": "13.0.6",
         "markdown-escape": "2.0.0",
-        "tslib": "2.6.2"
+        "tslib": "2.8.1"
     },
     "devDependencies": {
-        "@types/markdown-escape": "1.1.1",
-        "js-yaml": "5.2.0"
+        "@types/markdown-escape": "1.1.3",
+        "js-yaml": "5.5.0"
     }
 }

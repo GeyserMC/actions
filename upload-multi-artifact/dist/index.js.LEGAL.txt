@@ -83,6 +83,7 @@ content-type/dist/index.js:
    */
 
 @octokit/request-error/dist-src/index.js:
+@octokit/request-error/dist-src/index.js:
   /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
 
 @octokit/request/dist-bundle/index.js:
