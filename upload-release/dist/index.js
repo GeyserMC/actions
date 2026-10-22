@@ -2500,7 +2500,7 @@ var require_connect = __commonJS({
       const sessionCache = new SessionCache(maxCachedSessions == null ? 100 : maxCachedSessions);
       timeout = timeout == null ? 1e4 : timeout;
       allowH2 = allowH2 != null ? allowH2 : false;
-      return function connect({ hostname, host, protocol, port, servername, localAddress, httpSocket }, callback) {
+      return function connect2({ hostname, host, protocol, port, servername, localAddress, httpSocket }, callback) {
         let socket;
         if (protocol === "https:") {
           if (!tls) {
@@ -5536,7 +5536,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         source: body.source
       };
     }
-    function throwIfAborted(state) {
+    function throwIfAborted2(state) {
       if (state.aborted) {
         throw new DOMException("The operation was aborted.", "AbortError");
       }
@@ -5610,7 +5610,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
       if (bodyUnusable(object)) {
         throw new TypeError("Body is unusable: Body has already been read");
       }
-      throwIfAborted(object[kState]);
+      throwIfAborted2(object[kState]);
       const promise = createDeferredPromise();
       const errorSteps = (error2) => promise.reject(error2);
       const successSteps = (data) => {
@@ -6775,7 +6775,7 @@ var require_client_h2 = __commonJS({
   "../node_modules/undici/lib/dispatcher/client-h2.js"(exports2, module2) {
     "use strict";
     var assert = require("node:assert");
-    var { pipeline } = require("node:stream");
+    var { pipeline: pipeline2 } = require("node:stream");
     var util = require_util();
     var {
       RequestContentLengthMismatchError,
@@ -7222,7 +7222,7 @@ var require_client_h2 = __commonJS({
     }
     function writeStream(abort, socket, expectsPayload, h2stream, body, client, request, contentLength) {
       assert(contentLength !== 0 || client[kRunning] === 0, "stream body cannot be pipelined");
-      const pipe = pipeline(
+      const pipe = pipeline2(
         body,
         h2stream,
         (err) => {
@@ -7586,7 +7586,7 @@ var require_client = __commonJS({
         strictContentLength,
         maxCachedSessions,
         maxRedirections,
-        connect: connect2,
+        connect: connect3,
         maxRequestsPerClient,
         localAddress,
         maxResponseSize,
@@ -7637,7 +7637,7 @@ var require_client = __commonJS({
         if (bodyTimeout != null && (!Number.isInteger(bodyTimeout) || bodyTimeout < 0)) {
           throw new InvalidArgumentError("bodyTimeout must be a positive integer or zero");
         }
-        if (connect2 != null && typeof connect2 !== "function" && typeof connect2 !== "object") {
+        if (connect3 != null && typeof connect3 !== "function" && typeof connect3 !== "object") {
           throw new InvalidArgumentError("connect must be a function or an object");
         }
         if (maxRedirections != null && (!Number.isInteger(maxRedirections) || maxRedirections < 0)) {
@@ -7661,15 +7661,15 @@ var require_client = __commonJS({
         if (maxConcurrentStreams != null && (typeof maxConcurrentStreams !== "number" || maxConcurrentStreams < 1)) {
           throw new InvalidArgumentError("maxConcurrentStreams must be a positive integer, greater than 0");
         }
-        if (typeof connect2 !== "function") {
-          connect2 = buildConnector({
+        if (typeof connect3 !== "function") {
+          connect3 = buildConnector({
             ...tls,
             maxCachedSessions,
             allowH2,
             socketPath,
             timeout: connectTimeout,
             ...autoSelectFamily ? { autoSelectFamily, autoSelectFamilyAttemptTimeout } : void 0,
-            ...connect2
+            ...connect3
           });
         }
         if (interceptors?.Client && Array.isArray(interceptors.Client)) {
@@ -7684,7 +7684,7 @@ var require_client = __commonJS({
           this[kInterceptors] = [createRedirectInterceptor({ maxRedirections })];
         }
         this[kUrl] = util.parseOrigin(url);
-        this[kConnector] = connect2;
+        this[kConnector] = connect3;
         this[kPipelining] = pipelining != null ? pipelining : 1;
         this[kMaxHeadersSize] = maxHeaderSize || http.maxHeaderSize;
         this[kKeepAliveDefaultTimeout] = keepAliveTimeout == null ? 4e3 : keepAliveTimeout;
@@ -7738,7 +7738,7 @@ var require_client = __commonJS({
       }
       /* istanbul ignore: only used for test */
       [kConnect](cb) {
-        connect(this);
+        connect2(this);
         this.once("connect", cb);
       }
       [kDispatch](opts, handler) {
@@ -7802,7 +7802,7 @@ var require_client = __commonJS({
         assert(client[kSize] === 0);
       }
     }
-    async function connect(client) {
+    async function connect2(client) {
       assert(!client[kConnecting]);
       assert(!client[kHTTPContext]);
       let { host, hostname, protocol, port } = client[kUrl];
@@ -7973,7 +7973,7 @@ var require_client = __commonJS({
           return;
         }
         if (!client[kHTTPContext]) {
-          connect(client);
+          connect2(client);
           return;
         }
         if (client[kHTTPContext].destroyed) {
@@ -8265,7 +8265,7 @@ var require_pool = __commonJS({
       constructor(origin, {
         connections,
         factory = defaultFactory,
-        connect,
+        connect: connect2,
         connectTimeout,
         tls,
         maxCachedSessions,
@@ -8281,25 +8281,25 @@ var require_pool = __commonJS({
         if (typeof factory !== "function") {
           throw new InvalidArgumentError("factory must be a function.");
         }
-        if (connect != null && typeof connect !== "function" && typeof connect !== "object") {
+        if (connect2 != null && typeof connect2 !== "function" && typeof connect2 !== "object") {
           throw new InvalidArgumentError("connect must be a function or an object");
         }
-        if (typeof connect !== "function") {
-          connect = buildConnector({
+        if (typeof connect2 !== "function") {
+          connect2 = buildConnector({
             ...tls,
             maxCachedSessions,
             allowH2,
             socketPath,
             timeout: connectTimeout,
             ...autoSelectFamily ? { autoSelectFamily, autoSelectFamilyAttemptTimeout } : void 0,
-            ...connect
+            ...connect2
           });
         }
         super(options);
         this[kInterceptors] = options.interceptors?.Pool && Array.isArray(options.interceptors.Pool) ? options.interceptors.Pool : [];
         this[kConnections] = connections || null;
         this[kUrl] = util.parseOrigin(origin);
-        this[kOptions] = { ...util.deepClone(options), connect, allowH2 };
+        this[kOptions] = { ...util.deepClone(options), connect: connect2, allowH2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kFactory] = factory;
         this.on("connectionError", (origin2, targets, error2) => {
@@ -8494,22 +8494,22 @@ var require_agent = __commonJS({
       return opts && opts.connections === 1 ? new Client2(origin, opts) : new Pool(origin, opts);
     }
     var Agent = class extends DispatcherBase {
-      constructor({ factory = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
+      constructor({ factory = defaultFactory, maxRedirections = 0, connect: connect2, ...options } = {}) {
         if (typeof factory !== "function") {
           throw new InvalidArgumentError("factory must be a function.");
         }
-        if (connect != null && typeof connect !== "function" && typeof connect !== "object") {
+        if (connect2 != null && typeof connect2 !== "function" && typeof connect2 !== "object") {
           throw new InvalidArgumentError("connect must be a function or an object");
         }
         if (!Number.isInteger(maxRedirections) || maxRedirections < 0) {
           throw new InvalidArgumentError("maxRedirections must be a positive number");
         }
         super(options);
-        if (connect && typeof connect !== "function") {
-          connect = { ...connect };
+        if (connect2 && typeof connect2 !== "function") {
+          connect2 = { ...connect2 };
         }
         this[kInterceptors] = options.interceptors?.Agent && Array.isArray(options.interceptors.Agent) ? options.interceptors.Agent : [createRedirectInterceptor({ maxRedirections })];
-        this[kOptions] = { ...util.deepClone(options), connect };
+        this[kOptions] = { ...util.deepClone(options), connect: connect2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kMaxRedirections] = maxRedirections;
         this[kFactory] = factory;
@@ -8604,16 +8604,16 @@ var require_proxy_agent = __commonJS({
     }
     var Http1ProxyWrapper = class extends DispatcherBase {
       #client;
-      constructor(proxyUrl, { headers = {}, connect, factory }) {
+      constructor(proxyUrl, { headers = {}, connect: connect2, factory }) {
         super();
         if (!proxyUrl) {
           throw new InvalidArgumentError("Proxy URL is mandatory");
         }
         this[kProxyHeaders] = headers;
         if (factory) {
-          this.#client = factory(proxyUrl, { connect });
+          this.#client = factory(proxyUrl, { connect: connect2 });
         } else {
-          this.#client = new Client2(proxyUrl, { connect });
+          this.#client = new Client2(proxyUrl, { connect: connect2 });
         }
       }
       [kDispatch](opts, handler) {
@@ -8675,7 +8675,7 @@ var require_proxy_agent = __commonJS({
         } else if (username && password) {
           this[kProxyHeaders]["proxy-authorization"] = `Basic ${Buffer.from(`${decodeURIComponent(username)}:${decodeURIComponent(password)}`).toString("base64")}`;
         }
-        const connect = buildConnector({ ...opts.proxyTls });
+        const connect2 = buildConnector({ ...opts.proxyTls });
         this[kConnectEndpoint] = buildConnector({ ...opts.requestTls });
         const agentFactory = opts.factory || defaultAgentFactory;
         const factory = (origin2, options) => {
@@ -8683,13 +8683,13 @@ var require_proxy_agent = __commonJS({
           if (!this[kTunnelProxy] && protocol2 === "http:" && this[kProxy].protocol === "http:") {
             return new Http1ProxyWrapper(this[kProxy].uri, {
               headers: this[kProxyHeaders],
-              connect,
+              connect: connect2,
               factory: agentFactory
             });
           }
           return agentFactory(origin2, options);
         };
-        this[kClient] = clientFactory(url, { connect });
+        this[kClient] = clientFactory(url, { connect: connect2 });
         this[kAgent] = new Agent({
           ...opts,
           factory,
@@ -9266,7 +9266,7 @@ var require_readable = __commonJS({
   "../node_modules/undici/lib/api/readable.js"(exports2, module2) {
     "use strict";
     var assert = require("node:assert");
-    var { Readable } = require("node:stream");
+    var { Readable: Readable2 } = require("node:stream");
     var { RequestAbortedError, NotSupportedError, InvalidArgumentError, AbortError } = require_errors();
     var util = require_util();
     var { ReadableStreamFrom } = require_util();
@@ -9278,7 +9278,7 @@ var require_readable = __commonJS({
     var kContentLength = /* @__PURE__ */ Symbol("kContentLength");
     var noop = () => {
     };
-    var BodyReadable = class extends Readable {
+    var BodyReadable = class extends Readable2 {
       constructor({
         resume,
         abort,
@@ -9620,7 +9620,7 @@ var require_api_request = __commonJS({
   "../node_modules/undici/lib/api/api-request.js"(exports2, module2) {
     "use strict";
     var assert = require("node:assert");
-    var { Readable } = require_readable();
+    var { Readable: Readable2 } = require_readable();
     var { InvalidArgumentError, RequestAbortedError } = require_errors();
     var util = require_util();
     var { getResolveErrorBodyCallback } = require_util3();
@@ -9715,7 +9715,7 @@ var require_api_request = __commonJS({
         const parsedHeaders = responseHeaders === "raw" ? util.parseHeaders(rawHeaders) : headers;
         const contentType = parsedHeaders["content-type"];
         const contentLength = parsedHeaders["content-length"];
-        const res = new Readable({
+        const res = new Readable2({
           resume,
           abort,
           contentType,
@@ -10030,7 +10030,7 @@ var require_api_pipeline = __commonJS({
   "../node_modules/undici/lib/api/api-pipeline.js"(exports2, module2) {
     "use strict";
     var {
-      Readable,
+      Readable: Readable2,
       Duplex,
       PassThrough
     } = require("node:stream");
@@ -10044,7 +10044,7 @@ var require_api_pipeline = __commonJS({
     var { addSignal, removeSignal } = require_abort_signal();
     var assert = require("node:assert");
     var kResume = /* @__PURE__ */ Symbol("resume");
-    var PipelineRequest = class extends Readable {
+    var PipelineRequest = class extends Readable2 {
       constructor() {
         super({ autoDestroy: true });
         this[kResume] = null;
@@ -10061,7 +10061,7 @@ var require_api_pipeline = __commonJS({
         callback(err);
       }
     };
-    var PipelineResponse = class extends Readable {
+    var PipelineResponse = class extends Readable2 {
       constructor(resume) {
         super({ autoDestroy: true });
         this[kResume] = resume;
@@ -10212,7 +10212,7 @@ var require_api_pipeline = __commonJS({
         util.destroy(ret, err);
       }
     };
-    function pipeline(opts, handler) {
+    function pipeline2(opts, handler) {
       try {
         const pipelineHandler = new PipelineHandler(opts, handler);
         this.dispatch({ ...opts, body: pipelineHandler.req }, pipelineHandler);
@@ -10221,7 +10221,7 @@ var require_api_pipeline = __commonJS({
         return new PassThrough().destroy(err);
       }
     }
-    module2.exports = pipeline;
+    module2.exports = pipeline2;
   }
 });
 
@@ -10384,10 +10384,10 @@ var require_api_connect = __commonJS({
         }
       }
     };
-    function connect(opts, callback) {
+    function connect2(opts, callback) {
       if (callback === void 0) {
         return new Promise((resolve, reject) => {
-          connect.call(this, opts, (err, data) => {
+          connect2.call(this, opts, (err, data) => {
             return err ? reject(err) : resolve(data);
           });
         });
@@ -10403,7 +10403,7 @@ var require_api_connect = __commonJS({
         queueMicrotask(() => callback(err, { opaque }));
       }
     }
-    module2.exports = connect;
+    module2.exports = connect2;
   }
 });
 
@@ -13386,7 +13386,7 @@ var require_fetch = __commonJS({
       subresourceSet
     } = require_constants3();
     var EE = require("node:events");
-    var { Readable, pipeline, finished } = require("node:stream");
+    var { Readable: Readable2, pipeline: pipeline2, finished } = require("node:stream");
     var { addAbortListener, isErrored, isReadable, bufferToLowerCasedHeaderName } = require_util();
     var { dataURLProcessor, serializeAMimeType, minimizeSupportedMimeType } = require_data_url();
     var { getGlobalDispatcher } = require_global2();
@@ -14287,7 +14287,7 @@ var require_fetch = __commonJS({
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
               location = headersList.get("location", true);
-              this.body = new Readable({ read: resume });
+              this.body = new Readable2({ read: resume });
               const decoders = [];
               const willFollow = location && request.redirect === "follow" && redirectStatusSet.has(status);
               if (request.method !== "HEAD" && request.method !== "CONNECT" && !nullBodyStatus.includes(status) && !willFollow) {
@@ -14330,7 +14330,7 @@ var require_fetch = __commonJS({
                 status,
                 statusText,
                 headersList,
-                body: decoders.length ? pipeline(this.body, ...decoders, (err) => {
+                body: decoders.length ? pipeline2(this.body, ...decoders, (err) => {
                   if (err) {
                     this.onError(err);
                   }
@@ -18310,7 +18310,7 @@ ${value}`;
 var require_eventsource = __commonJS({
   "../node_modules/undici/lib/web/eventsource/eventsource.js"(exports2, module2) {
     "use strict";
-    var { pipeline } = require("node:stream");
+    var { pipeline: pipeline2 } = require("node:stream");
     var { fetching } = require_fetch();
     var { makeRequest } = require_request2();
     var { webidl } = require_webidl();
@@ -18468,7 +18468,7 @@ var require_eventsource = __commonJS({
               ));
             }
           });
-          pipeline(
+          pipeline2(
             response.body.stream,
             eventSourceStream,
             (error2) => {
@@ -26502,7 +26502,7 @@ var require_agent2 = __commonJS({
     var { Socket } = require("net");
     var { Duplex } = require("stream");
     var { resolve } = require("path");
-    var { readFile } = require("fs");
+    var { readFile: readFile2 } = require("fs");
     var { execFile, spawn } = require("child_process");
     var { isParsedKey, parseKey } = require_keyParser();
     var {
@@ -26720,7 +26720,7 @@ var require_agent2 = __commonJS({
           cb = once(cb);
           let socketPath = this.socketPath;
           let triedCygpath = false;
-          readFile(socketPath, function readCygsocket(err, data) {
+          readFile2(socketPath, function readCygsocket(err, data) {
             if (err) {
               if (triedCygpath)
                 return cb(new Error("Invalid cygwin unix socket path"));
@@ -26729,7 +26729,7 @@ var require_agent2 = __commonJS({
                   return cb(new Error("Invalid cygwin unix socket path"));
                 triedCygpath = true;
                 socketPath = stdout.toString().replace(/[\r\n]/g, "");
-                readFile(socketPath, readCygsocket);
+                readFile2(socketPath, readCygsocket);
               });
               return;
             }
@@ -32209,15 +32209,15 @@ var require_SFTP = __commonJS({
       writeData(handle, buf, off, len, position, cb) {
         this.write(handle, buf, off, len, position, cb);
       }
-      fastGet(remotePath, localPath, opts, cb) {
+      fastGet(remotePath2, localPath, opts, cb) {
         if (this.server)
           throw new Error("Client-only method called in server mode");
-        fastXfer(this, fs3, remotePath, localPath, opts, cb);
+        fastXfer(this, fs3, remotePath2, localPath, opts, cb);
       }
-      fastPut(localPath, remotePath, opts, cb) {
+      fastPut(localPath, remotePath2, opts, cb) {
         if (this.server)
           throw new Error("Client-only method called in server mode");
-        fastXfer(fs3, this, localPath, remotePath, opts, cb);
+        fastXfer(fs3, this, localPath, remotePath2, opts, cb);
       }
       readFile(path2, options, callback_) {
         if (this.server)
@@ -38874,1873 +38874,6 @@ var require_lib3 = __commonJS({
   }
 });
 
-// ../node_modules/node-scp/lib/constant.js
-var require_constant = __commonJS({
-  "../node_modules/node-scp/lib/constant.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.CLIENT_EVENTS = exports2.targetType = exports2.errorCode = void 0;
-    var errorCode;
-    (function(errorCode2) {
-      errorCode2["generic"] = "ERR_GENERIC_CLIENT";
-      errorCode2["connect"] = "ERR_NOT_CONNECTED";
-      errorCode2["badPath"] = "ERR_BAD_PATH";
-      errorCode2["permission"] = "EACCES";
-      errorCode2["notexist"] = "ENOENT";
-      errorCode2["notdir"] = "ENOTDIR";
-    })(errorCode = exports2.errorCode || (exports2.errorCode = {}));
-    var targetType;
-    (function(targetType2) {
-      targetType2[targetType2["writeFile"] = 1] = "writeFile";
-      targetType2[targetType2["readFile"] = 2] = "readFile";
-      targetType2[targetType2["writeDir"] = 3] = "writeDir";
-      targetType2[targetType2["readDir"] = 4] = "readDir";
-      targetType2[targetType2["readObj"] = 5] = "readObj";
-      targetType2[targetType2["writeObj"] = 6] = "writeObj";
-    })(targetType = exports2.targetType || (exports2.targetType = {}));
-    exports2.CLIENT_EVENTS = /* @__PURE__ */ new Set([
-      "banner",
-      "ready",
-      "tcp connection",
-      "x11",
-      "keyboard-interactive",
-      "change password",
-      "error",
-      "end",
-      "close",
-      "timeout",
-      "connect",
-      "greeting",
-      "handshake",
-      "hostkeys",
-      "unix connection"
-    ]);
-  }
-});
-
-// ../node_modules/node-scp/lib/types.js
-var require_types2 = __commonJS({
-  "../node_modules/node-scp/lib/types.js"(exports2) {
-    "use strict";
-    var __extends = exports2 && exports2.__extends || /* @__PURE__ */ (function() {
-      var extendStatics = function(d, b) {
-        extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-          d2.__proto__ = b2;
-        } || function(d2, b2) {
-          for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
-        };
-        return extendStatics(d, b);
-      };
-      return function(d, b) {
-        if (typeof b !== "function" && b !== null)
-          throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() {
-          this.constructor = d;
-        }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.ErrorCustom = void 0;
-    var ErrorCustom = (
-      /** @class */
-      (function(_super) {
-        __extends(ErrorCustom2, _super);
-        function ErrorCustom2() {
-          return _super !== null && _super.apply(this, arguments) || this;
-        }
-        return ErrorCustom2;
-      })(Error)
-    );
-    exports2.ErrorCustom = ErrorCustom;
-  }
-});
-
-// ../node_modules/node-scp/lib/utils.js
-var require_utils4 = __commonJS({
-  "../node_modules/node-scp/lib/utils.js"(exports2) {
-    "use strict";
-    var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
-      function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-          resolve(value);
-        });
-      }
-      return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-          try {
-            step(generator.next(value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function rejected(value) {
-          try {
-            step(generator["throw"](value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function step(result) {
-          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-      });
-    };
-    var __generator = exports2 && exports2.__generator || function(thisArg, body) {
-      var _ = { label: 0, sent: function() {
-        if (t[0] & 1) throw t[1];
-        return t[1];
-      }, trys: [], ops: [] }, f, y, t, g;
-      return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
-        return this;
-      }), g;
-      function verb(n) {
-        return function(v) {
-          return step([n, v]);
-        };
-      }
-      function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-          if (y = 0, t) op = [op[0] & 2, t.value];
-          switch (op[0]) {
-            case 0:
-            case 1:
-              t = op;
-              break;
-            case 4:
-              _.label++;
-              return { value: op[1], done: false };
-            case 5:
-              _.label++;
-              y = op[1];
-              op = [0];
-              continue;
-            case 7:
-              op = _.ops.pop();
-              _.trys.pop();
-              continue;
-            default:
-              if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                _ = 0;
-                continue;
-              }
-              if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                _.label = op[1];
-                break;
-              }
-              if (op[0] === 6 && _.label < t[1]) {
-                _.label = t[1];
-                t = op;
-                break;
-              }
-              if (t && _.label < t[2]) {
-                _.label = t[2];
-                _.ops.push(op);
-                break;
-              }
-              if (t[2]) _.ops.pop();
-              _.trys.pop();
-              continue;
-          }
-          op = body.call(thisArg, _);
-        } catch (e) {
-          op = [6, e];
-          y = 0;
-        } finally {
-          f = t = 0;
-        }
-        if (op[0] & 5) throw op[1];
-        return { value: op[0] ? op[1] : void 0, done: true };
-      }
-    };
-    var __importDefault = exports2 && exports2.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.joinRemote = exports2.hasListener = exports2.dumpListeners = exports2.haveConnection = exports2.checkRemotePath = exports2.checkWriteObject = exports2.checkWriteDir = exports2.checkWriteFile = exports2.checkReadDir = exports2.checkReadFile = exports2.checkReadObject = exports2.normalizeRemotePath = exports2.checkLocalPath = exports2.checkLocalWriteDir = exports2.checkLocalWriteFile = exports2.checkLocalReadDir = exports2.checkLocalReadFile = exports2.localAccess = exports2.classifyError = exports2.localExists = exports2.makeCloseListener = exports2.makeEndListener = exports2.makeErrorListener = exports2.handleError = exports2.formatError = void 0;
-    var fs_1 = __importDefault(require("fs"));
-    var path_1 = __importDefault(require("path"));
-    var constant_1 = require_constant();
-    var types_1 = require_types2();
-    function formatError(err, name, eCode, retryCount) {
-      if (name === void 0) {
-        name = "sftp";
-      }
-      if (eCode === void 0) {
-        eCode = constant_1.errorCode.generic;
-      }
-      var msg = "";
-      var code = "";
-      var retry = retryCount ? " after " + retryCount + " " + (retryCount > 1 ? "attempts" : "attempt") : "";
-      if (err === void 0) {
-        msg = name + ": Undefined error - probably a bug!";
-        code = constant_1.errorCode.generic;
-      } else if (typeof err === "string") {
-        msg = name + ": " + err + retry;
-        code = eCode;
-      } else if (err.custom) {
-        msg = name + "->" + err.message + retry;
-        code = err.code;
-      } else {
-        switch (err.code) {
-          case "ENOTFOUND":
-            msg = name + ": " + err.level + " error. " + ("Address lookup failed for host " + err.hostname + retry);
-            break;
-          case "ECONNREFUSED":
-            msg = name + ": " + err.level + " error. Remote host at " + (err.address + " refused connection" + retry);
-            break;
-          case "ECONNRESET":
-            msg = name + ": Remote host has reset the connection: " + ("" + err.message + retry);
-            break;
-          case "ENOENT":
-            msg = name + ": " + err.message + retry;
-            break;
-          default:
-            msg = name + ": " + err.message + retry;
-        }
-        code = err.code ? err.code : eCode;
-      }
-      var newError = new types_1.ErrorCustom(msg);
-      newError.code = code;
-      newError.custom = true;
-      return newError;
-    }
-    exports2.formatError = formatError;
-    function handleError(err, name, reject) {
-      if (reject) {
-        if (err.custom) {
-          reject(err);
-        } else {
-          reject(formatError(err, name, void 0, void 0));
-        }
-      } else {
-        if (err.custom) {
-          throw err;
-        } else {
-          throw formatError(err, name, void 0, void 0);
-        }
-      }
-    }
-    exports2.handleError = handleError;
-    function makeErrorListener(reject, client, name) {
-      return function(err) {
-        client.errorHandled = true;
-        reject(formatError(err, name));
-      };
-    }
-    exports2.makeErrorListener = makeErrorListener;
-    function makeEndListener(client) {
-      return function() {
-        if (!client.endCalled) {
-          console.error("End Listener: Connection ended unexpectedly");
-        }
-      };
-    }
-    exports2.makeEndListener = makeEndListener;
-    function makeCloseListener(client, reject, name) {
-      return function() {
-        if (!client.endCalled) {
-          if (reject) {
-            reject(formatError("Connection closed unexpectedly", name));
-          } else {
-            console.error("Connection closed unexpectedly");
-          }
-        }
-        client.sftpWrapper = null;
-      };
-    }
-    exports2.makeCloseListener = makeCloseListener;
-    function localExists(localPath) {
-      return new Promise(function(resolve, reject) {
-        fs_1.default.stat(localPath, function(err, stats) {
-          if (err) {
-            if (err.code === "ENOENT") {
-              resolve("ENOENT");
-            } else {
-              reject(err);
-            }
-          } else {
-            if (stats.isDirectory()) {
-              resolve("d");
-            } else if (stats.isSymbolicLink()) {
-              resolve("l");
-            } else if (stats.isFile()) {
-              resolve("-");
-            } else {
-              resolve("");
-            }
-          }
-        });
-      });
-    }
-    exports2.localExists = localExists;
-    function classifyError(err, testPath) {
-      switch (err.code) {
-        case "EACCES":
-          return {
-            msg: "Permission denied: " + testPath,
-            code: constant_1.errorCode.permission
-          };
-        case "ENOENT":
-          return {
-            msg: "No such file: " + testPath,
-            code: constant_1.errorCode.notexist
-          };
-        case "ENOTDIR":
-          return {
-            msg: "Not a directory: " + testPath,
-            code: constant_1.errorCode.notdir
-          };
-        default:
-          return {
-            msg: err.message,
-            code: err.code ? err.code : constant_1.errorCode.generic
-          };
-      }
-    }
-    exports2.classifyError = classifyError;
-    function localAccess(localPath, mode) {
-      return new Promise(function(resolve) {
-        fs_1.default.access(localPath, mode, function(err) {
-          if (err) {
-            var _a = classifyError(err, localPath), msg = _a.msg, code = _a.code;
-            resolve({
-              path: localPath,
-              valid: false,
-              msg,
-              code
-            });
-          } else {
-            resolve({
-              path: localPath,
-              valid: true
-            });
-          }
-        });
-      });
-    }
-    exports2.localAccess = localAccess;
-    function checkLocalReadFile(localPath, localType) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var rslt, access2, err_1;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              _a.trys.push([0, 4, , 5]);
-              rslt = {
-                path: localPath,
-                type: localType
-              };
-              if (!(localType === "d")) return [3, 1];
-              rslt.valid = false;
-              rslt.msg = "Bad path: " + localPath + " must be a file";
-              rslt.code = constant_1.errorCode.badPath;
-              return [2, rslt];
-            case 1:
-              return [4, localAccess(localPath, fs_1.default.constants.R_OK)];
-            case 2:
-              access2 = _a.sent();
-              if (access2.valid) {
-                rslt.valid = true;
-                return [2, rslt];
-              } else {
-                rslt.valid = false;
-                rslt.msg = access2.msg;
-                rslt.code = access2.code;
-                return [2, rslt];
-              }
-              _a.label = 3;
-            case 3:
-              return [3, 5];
-            case 4:
-              err_1 = _a.sent();
-              throw formatError(err_1, "checkLocalReadFile");
-            case 5:
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkLocalReadFile = checkLocalReadFile;
-    function checkLocalReadDir(localPath, localType) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var rslt, access2, err_2;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              _a.trys.push([0, 5, , 6]);
-              rslt = {
-                path: localPath,
-                type: localType
-              };
-              if (!!localType) return [3, 1];
-              rslt.valid = false;
-              rslt.msg = "No such directory: " + localPath;
-              rslt.code = constant_1.errorCode.notdir;
-              return [2, rslt];
-            case 1:
-              if (!(localType !== "d")) return [3, 2];
-              rslt.valid = false;
-              rslt.msg = "Bad path: " + localPath + " must be a directory";
-              rslt.code = constant_1.errorCode.badPath;
-              return [2, rslt];
-            case 2:
-              return [4, localAccess(localPath, fs_1.default.constants.R_OK | fs_1.default.constants.X_OK)];
-            case 3:
-              access2 = _a.sent();
-              if (!access2.valid) {
-                rslt.valid = false;
-                rslt.msg = access2.msg;
-                rslt.code = access2.code;
-                return [2, rslt];
-              }
-              rslt.valid = true;
-              return [2, rslt];
-            case 4:
-              return [3, 6];
-            case 5:
-              err_2 = _a.sent();
-              throw formatError(err_2, "checkLocalReadDir");
-            case 6:
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkLocalReadDir = checkLocalReadDir;
-    function checkLocalWriteFile(localPath, localType) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var rslt, dir, parent_1, access2, err_3;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              _a.trys.push([0, 6, , 7]);
-              rslt = {
-                path: localPath,
-                type: localType
-              };
-              if (!(localType === "d")) return [3, 1];
-              rslt.valid = false;
-              rslt.msg = "Bad path: " + localPath + " must be a file";
-              rslt.code = constant_1.errorCode.badPath;
-              return [2, rslt];
-            case 1:
-              if (!!localType) return [3, 3];
-              dir = path_1.default.parse(localPath).dir;
-              return [4, localAccess(dir, fs_1.default.constants.W_OK)];
-            case 2:
-              parent_1 = _a.sent();
-              if (parent_1.valid) {
-                rslt.valid = true;
-                return [2, rslt];
-              } else {
-                rslt.valid = false;
-                rslt.msg = parent_1.msg;
-                rslt.code = parent_1.code;
-                return [2, rslt];
-              }
-              return [3, 5];
-            case 3:
-              return [4, localAccess(localPath, fs_1.default.constants.W_OK)];
-            case 4:
-              access2 = _a.sent();
-              if (access2.valid) {
-                rslt.valid = true;
-                return [2, rslt];
-              } else {
-                rslt.valid = false;
-                rslt.msg = access2.msg;
-                rslt.code = access2.code;
-                return [2, rslt];
-              }
-              _a.label = 5;
-            case 5:
-              return [3, 7];
-            case 6:
-              err_3 = _a.sent();
-              throw formatError(err_3, "checkLocalWriteFile");
-            case 7:
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkLocalWriteFile = checkLocalWriteFile;
-    function checkLocalWriteDir(localPath, localType) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var rslt, parent_2, access2, access2, err_4;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              _a.trys.push([0, 6, , 7]);
-              rslt = {
-                path: localPath,
-                type: localType
-              };
-              if (!!localType) return [3, 2];
-              parent_2 = path_1.default.parse(localPath).dir;
-              return [4, localAccess(parent_2, fs_1.default.constants.W_OK)];
-            case 1:
-              access2 = _a.sent();
-              if (access2.valid) {
-                rslt.valid = true;
-                return [2, rslt];
-              } else {
-                rslt.valid = false;
-                rslt.msg = access2.msg;
-                rslt.code = access2.code;
-                return [2, rslt];
-              }
-              return [3, 5];
-            case 2:
-              if (!(localType !== "d")) return [3, 3];
-              rslt.valid = false;
-              rslt.msg = "Bad path: " + localPath + " must be a directory";
-              rslt.code = constant_1.errorCode.badPath;
-              return [2, rslt];
-            case 3:
-              return [4, localAccess(localPath, fs_1.default.constants.W_OK)];
-            case 4:
-              access2 = _a.sent();
-              if (access2.valid) {
-                rslt.valid = true;
-                return [2, rslt];
-              } else {
-                rslt.valid = false;
-                rslt.msg = access2.msg;
-                rslt.code = access2.code;
-                return [2, rslt];
-              }
-              _a.label = 5;
-            case 5:
-              return [3, 7];
-            case 6:
-              err_4 = _a.sent();
-              throw formatError(err_4, "checkLocalWriteDir");
-            case 7:
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkLocalWriteDir = checkLocalWriteDir;
-    function checkLocalPath(lPath, target) {
-      if (target === void 0) {
-        target = constant_1.targetType.readFile;
-      }
-      return __awaiter2(this, void 0, void 0, function() {
-        var localPath, type;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              localPath = path_1.default.resolve(lPath);
-              return [4, localExists(localPath)];
-            case 1:
-              type = _a.sent();
-              switch (target) {
-                case constant_1.targetType.readFile:
-                  return [2, checkLocalReadFile(localPath, type)];
-                case constant_1.targetType.readDir:
-                  return [2, checkLocalReadDir(localPath, type)];
-                case constant_1.targetType.writeFile:
-                  return [2, checkLocalWriteFile(localPath, type)];
-                case constant_1.targetType.writeDir:
-                  return [2, checkLocalWriteDir(localPath, type)];
-                default:
-                  return [2, {
-                    path: localPath,
-                    type,
-                    valid: true
-                  }];
-              }
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkLocalPath = checkLocalPath;
-    function normalizeRemotePath(client, aPath) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var root, root, err_5;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              _a.trys.push([0, 5, , 6]);
-              if (!aPath.startsWith("..")) return [3, 2];
-              return [4, client.realPath("..")];
-            case 1:
-              root = _a.sent();
-              return [2, root + client.remotePathSep + aPath.substring(3)];
-            case 2:
-              if (!aPath.startsWith(".")) return [3, 4];
-              return [4, client.realPath(".")];
-            case 3:
-              root = _a.sent();
-              return [2, root + client.remotePathSep + aPath.substring(2)];
-            case 4:
-              return [2, aPath];
-            case 5:
-              err_5 = _a.sent();
-              throw formatError(err_5, "normalizeRemotePath");
-            case 6:
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.normalizeRemotePath = normalizeRemotePath;
-    function checkReadObject(aPath, type) {
-      return {
-        path: aPath,
-        type,
-        valid: type ? true : false,
-        msg: type ? void 0 : "No such file " + aPath,
-        code: type ? void 0 : constant_1.errorCode.notexist
-      };
-    }
-    exports2.checkReadObject = checkReadObject;
-    function checkReadFile(aPath, type) {
-      if (!type) {
-        return {
-          path: aPath,
-          type,
-          valid: false,
-          msg: "No such file: " + aPath,
-          code: constant_1.errorCode.notexist
-        };
-      } else if (type === "d") {
-        return {
-          path: aPath,
-          type,
-          valid: false,
-          msg: "Bad path: " + aPath + " must be a file",
-          code: constant_1.errorCode.badPath
-        };
-      }
-      return {
-        path: aPath,
-        type,
-        valid: true
-      };
-    }
-    exports2.checkReadFile = checkReadFile;
-    function checkReadDir(aPath, type) {
-      if (!type) {
-        return {
-          path: aPath,
-          type,
-          valid: false,
-          msg: "No such directory: " + aPath,
-          code: constant_1.errorCode.notdir
-        };
-      } else if (type !== "d") {
-        return {
-          path: aPath,
-          type,
-          valid: false,
-          msg: "Bad path: " + aPath + " must be a directory",
-          code: constant_1.errorCode.badPath
-        };
-      }
-      return {
-        path: aPath,
-        type,
-        valid: true
-      };
-    }
-    exports2.checkReadDir = checkReadDir;
-    function checkWriteFile(client, aPath, type) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var _a, root, dir, parentType;
-        return __generator(this, function(_b) {
-          switch (_b.label) {
-            case 0:
-              if (!(type && type === "d")) return [3, 1];
-              return [2, {
-                path: aPath,
-                type,
-                valid: false,
-                msg: "Bad path: " + aPath + " must be a regular file",
-                code: constant_1.errorCode.badPath
-              }];
-            case 1:
-              if (!!type) return [3, 3];
-              _a = path_1.default.parse(aPath), root = _a.root, dir = _a.dir;
-              if (!dir) {
-                return [2, {
-                  path: aPath,
-                  type: false,
-                  valid: false,
-                  msg: "Bad path: " + aPath + " cannot determine parent directory",
-                  code: constant_1.errorCode.badPath
-                }];
-              }
-              if (root === dir) {
-                return [2, {
-                  path: aPath,
-                  type,
-                  valid: true
-                }];
-              }
-              return [4, client.exists(dir)];
-            case 2:
-              parentType = _b.sent();
-              if (!parentType) {
-                return [2, {
-                  path: aPath,
-                  type,
-                  valid: false,
-                  msg: "Bad path: " + dir + " parent not exist",
-                  code: constant_1.errorCode.badPath
-                }];
-              } else if (parentType !== "d") {
-                return [2, {
-                  path: aPath,
-                  type,
-                  valid: false,
-                  msg: "Bad path: " + dir + " must be a directory",
-                  code: constant_1.errorCode.badPath
-                }];
-              }
-              return [2, {
-                path: aPath,
-                type,
-                valid: true
-              }];
-            case 3:
-              return [2, {
-                path: aPath,
-                type,
-                valid: true
-              }];
-          }
-        });
-      });
-    }
-    exports2.checkWriteFile = checkWriteFile;
-    function checkWriteDir(client, aPath, type) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var _a, root, dir, parentType;
-        return __generator(this, function(_b) {
-          switch (_b.label) {
-            case 0:
-              if (!(type && type !== "d")) return [3, 1];
-              return [2, {
-                path: aPath,
-                type,
-                valid: false,
-                msg: "Bad path: " + aPath + " must be a directory",
-                code: constant_1.errorCode.badPath
-              }];
-            case 1:
-              if (!!type) return [3, 3];
-              _a = path_1.default.parse(aPath), root = _a.root, dir = _a.dir;
-              if (root === dir) {
-                return [2, {
-                  path: aPath,
-                  type,
-                  valid: true
-                }];
-              }
-              if (!dir) {
-                return [2, {
-                  path: aPath,
-                  type: false,
-                  valid: false,
-                  msg: "Bad path: " + aPath + " cannot determine directory parent",
-                  code: constant_1.errorCode.badPath
-                }];
-              }
-              return [4, client.exists(dir)];
-            case 2:
-              parentType = _b.sent();
-              if (parentType && parentType !== "d") {
-                return [2, {
-                  path: aPath,
-                  type,
-                  valid: false,
-                  msg: "Bad path: Parent Directory must be a directory",
-                  code: constant_1.errorCode.badPath
-                }];
-              }
-              _b.label = 3;
-            case 3:
-              return [2, {
-                path: aPath,
-                type,
-                valid: true
-              }];
-          }
-        });
-      });
-    }
-    exports2.checkWriteDir = checkWriteDir;
-    function checkWriteObject(aPath, type) {
-      return {
-        path: aPath,
-        type,
-        valid: true
-      };
-    }
-    exports2.checkWriteObject = checkWriteObject;
-    function checkRemotePath(client, rPath, target) {
-      if (target === void 0) {
-        target = constant_1.targetType.readFile;
-      }
-      return __awaiter2(this, void 0, void 0, function() {
-        var aPath, type;
-        return __generator(this, function(_a) {
-          switch (_a.label) {
-            case 0:
-              return [4, normalizeRemotePath(client, rPath)];
-            case 1:
-              aPath = _a.sent();
-              return [4, client.exists(aPath)];
-            case 2:
-              type = _a.sent();
-              switch (target) {
-                case constant_1.targetType.readObj:
-                  return [2, checkReadObject(aPath, type)];
-                case constant_1.targetType.readFile:
-                  return [2, checkReadFile(aPath, type)];
-                case constant_1.targetType.readDir:
-                  return [2, checkReadDir(aPath, type)];
-                case constant_1.targetType.writeFile:
-                  return [2, checkWriteFile(client, aPath, type)];
-                case constant_1.targetType.writeDir:
-                  return [2, checkWriteDir(client, aPath, type)];
-                case constant_1.targetType.writeObj:
-                  return [2, checkWriteObject(aPath, type)];
-                default:
-                  throw formatError("Unknown target type: " + target, "checkRemotePath", constant_1.errorCode.generic);
-              }
-              return [
-                2
-                /*return*/
-              ];
-          }
-        });
-      });
-    }
-    exports2.checkRemotePath = checkRemotePath;
-    function haveConnection(client, name, reject) {
-      if (!client.sftpWrapper) {
-        var newError = formatError("No SFTP connection available", name, constant_1.errorCode.connect);
-        if (reject) {
-          reject(newError);
-          return false;
-        } else {
-          throw newError;
-        }
-      }
-      return true;
-    }
-    exports2.haveConnection = haveConnection;
-    function dumpListeners(emitter) {
-      var eventNames = emitter.eventNames();
-      if (eventNames.length) {
-        console.log("Listener Data");
-        eventNames.map(function(n) {
-          var listeners = emitter.listeners(n);
-          console.log(n + ": " + emitter.listenerCount(n));
-          console.dir(listeners);
-          listeners.map(function(l) {
-            console.log("listener name = " + l.name);
-          });
-        });
-      }
-    }
-    exports2.dumpListeners = dumpListeners;
-    function hasListener(emitter, eventName, listenerName) {
-      var listeners = emitter.listeners(eventName);
-      var matches = listeners.filter(function(l) {
-        return l.name === listenerName;
-      });
-      return matches.length === 0 ? false : true;
-    }
-    exports2.hasListener = hasListener;
-    function joinRemote(client) {
-      var _a, _b;
-      var args = [];
-      for (var _i = 1; _i < arguments.length; _i++) {
-        args[_i - 1] = arguments[_i];
-      }
-      if (client.remotePathSep === path_1.default.win32.sep) {
-        return (_a = path_1.default.win32).join.apply(_a, args);
-      }
-      return (_b = path_1.default.posix).join.apply(_b, args);
-    }
-    exports2.joinRemote = joinRemote;
-  }
-});
-
-// ../node_modules/node-scp/lib/index.js
-var require_lib4 = __commonJS({
-  "../node_modules/node-scp/lib/index.js"(exports2) {
-    "use strict";
-    var __extends = exports2 && exports2.__extends || /* @__PURE__ */ (function() {
-      var extendStatics = function(d, b) {
-        extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-          d2.__proto__ = b2;
-        } || function(d2, b2) {
-          for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
-        };
-        return extendStatics(d, b);
-      };
-      return function(d, b) {
-        if (typeof b !== "function" && b !== null)
-          throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() {
-          this.constructor = d;
-        }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-      };
-    })();
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      Object.defineProperty(o, k2, { enumerable: true, get: function() {
-        return m[k];
-      } });
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    var __awaiter2 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
-      function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-          resolve(value);
-        });
-      }
-      return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-          try {
-            step(generator.next(value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function rejected(value) {
-          try {
-            step(generator["throw"](value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function step(result) {
-          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-      });
-    };
-    var __generator = exports2 && exports2.__generator || function(thisArg, body) {
-      var _ = { label: 0, sent: function() {
-        if (t[0] & 1) throw t[1];
-        return t[1];
-      }, trys: [], ops: [] }, f, y, t, g;
-      return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
-        return this;
-      }), g;
-      function verb(n) {
-        return function(v) {
-          return step([n, v]);
-        };
-      }
-      function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-          if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-          if (y = 0, t) op = [op[0] & 2, t.value];
-          switch (op[0]) {
-            case 0:
-            case 1:
-              t = op;
-              break;
-            case 4:
-              _.label++;
-              return { value: op[1], done: false };
-            case 5:
-              _.label++;
-              y = op[1];
-              op = [0];
-              continue;
-            case 7:
-              op = _.ops.pop();
-              _.trys.pop();
-              continue;
-            default:
-              if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                _ = 0;
-                continue;
-              }
-              if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                _.label = op[1];
-                break;
-              }
-              if (op[0] === 6 && _.label < t[1]) {
-                _.label = t[1];
-                t = op;
-                break;
-              }
-              if (t && _.label < t[2]) {
-                _.label = t[2];
-                _.ops.push(op);
-                break;
-              }
-              if (t[2]) _.ops.pop();
-              _.trys.pop();
-              continue;
-          }
-          op = body.call(thisArg, _);
-        } catch (e) {
-          op = [6, e];
-          y = 0;
-        } finally {
-          f = t = 0;
-        }
-        if (op[0] & 5) throw op[1];
-        return { value: op[0] ? op[1] : void 0, done: true };
-      }
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Client = exports2.ScpClient = void 0;
-    var events_1 = require("events");
-    var fs_1 = require("fs");
-    var path_1 = require("path");
-    var ssh2_1 = require_lib3();
-    var constant_1 = require_constant();
-    var utils = __importStar(require_utils4());
-    var ScpClient2 = (
-      /** @class */
-      (function(_super) {
-        __extends(ScpClient3, _super);
-        function ScpClient3(options) {
-          var _this = _super.call(this) || this;
-          _this.sftpWrapper = null;
-          _this.sshClient = null;
-          _this.remotePathSep = path_1.posix.sep;
-          _this.endCalled = false;
-          _this.errorHandled = false;
-          var ssh = new ssh2_1.Client();
-          ssh.on("connect", function() {
-            return _this.emit("connect");
-          }).on("ready", function() {
-            ssh.sftp(function(err, sftp) {
-              if (err) {
-                throw err;
-              }
-              _this.sftpWrapper = sftp;
-              _this.emit("ready");
-            });
-          }).on("error", function(err) {
-            return _this.emit("error", err);
-          }).on("end", function() {
-            return _this.emit("end");
-          }).on("close", function() {
-            if (!_this.endCalled) {
-              _this.sftpWrapper = null;
-            }
-            _this.emit("close");
-          }).on("keyboard-interactive", function(name, instructions, instructionsLang, prompts, finish) {
-            return _this.emit("keyboard-interactive", name, instructions, instructionsLang, prompts, finish);
-          }).on("change password", function(message, done) {
-            return _this.emit("change password", message, done);
-          }).on("tcp connection", function(details, accept, reject) {
-            return _this.emit("tcp connection", details, accept, reject);
-          }).on("banner", function(message) {
-            return _this.emit("banner", message);
-          }).on("greeting", function(greeting) {
-            return _this.emit("banner", greeting);
-          }).on("handshake", function(negotiated) {
-            return _this.emit("handshake", negotiated);
-          }).on("hostkeys", function(keys) {
-            return _this.emit("hostkeys", keys);
-          }).on("timeout", function() {
-            return _this.emit("timeout");
-          }).on("unix connection", function(info, accept, reject) {
-            return _this.emit("unix connection", info, accept, reject);
-          }).on("x11", function(message) {
-            return _this.emit("x11", message);
-          });
-          ssh.connect(options);
-          _this.sshClient = ssh;
-          if (options.remoteOsType === "win32") {
-            _this.remotePathSep = path_1.win32.sep;
-          }
-          return _this;
-        }
-        ScpClient3.prototype.uploadFile = function(localPath, remotePath, options) {
-          if (options === void 0) {
-            options = {};
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "uploadFile");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.fastPut(localPath, remotePath, options, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.downloadFile = function(remotePath, localPath, options) {
-          if (options === void 0) {
-            options = {};
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "downloadFile");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.fastGet(remotePath, localPath, options, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.emptyDir = function(dir) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var isExist, error_1;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  utils.haveConnection(this, "uploadDir");
-                  _a.label = 1;
-                case 1:
-                  _a.trys.push([1, 8, , 9]);
-                  return [4, this.exists(dir)];
-                case 2:
-                  isExist = _a.sent();
-                  if (!!isExist) return [3, 4];
-                  return [4, this.mkdir(dir)];
-                case 3:
-                  _a.sent();
-                  return [3, 7];
-                case 4:
-                  if (!(isExist === "d")) return [3, 7];
-                  return [4, this.rmdir(dir)];
-                case 5:
-                  _a.sent();
-                  return [4, this.mkdir(dir)];
-                case 6:
-                  _a.sent();
-                  _a.label = 7;
-                case 7:
-                  return [3, 9];
-                case 8:
-                  error_1 = _a.sent();
-                  throw error_1;
-                case 9:
-                  return [
-                    2
-                    /*return*/
-                  ];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.uploadDir = function(src, dest) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var isExist, dirEntries, _i, dirEntries_1, e, newSrc, newDst, newSrc, newDst, error_2;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  utils.haveConnection(this, "uploadDir");
-                  _a.label = 1;
-                case 1:
-                  _a.trys.push([1, 11, , 12]);
-                  return [4, this.exists(dest)];
-                case 2:
-                  isExist = _a.sent();
-                  if (!!isExist) return [3, 4];
-                  return [4, this.mkdir(dest)];
-                case 3:
-                  _a.sent();
-                  _a.label = 4;
-                case 4:
-                  dirEntries = fs_1.readdirSync(src, {
-                    encoding: "utf8",
-                    withFileTypes: true
-                  });
-                  _i = 0, dirEntries_1 = dirEntries;
-                  _a.label = 5;
-                case 5:
-                  if (!(_i < dirEntries_1.length)) return [3, 10];
-                  e = dirEntries_1[_i];
-                  if (!e.isDirectory()) return [3, 7];
-                  newSrc = path_1.join(src, e.name);
-                  newDst = utils.joinRemote(this, dest, e.name);
-                  return [4, this.uploadDir(newSrc, newDst)];
-                case 6:
-                  _a.sent();
-                  return [3, 9];
-                case 7:
-                  if (!e.isFile()) return [3, 9];
-                  newSrc = path_1.join(src, e.name);
-                  newDst = utils.joinRemote(this, dest, e.name);
-                  return [4, this.uploadFile(newSrc, newDst)];
-                case 8:
-                  _a.sent();
-                  _a.label = 9;
-                case 9:
-                  _i++;
-                  return [3, 5];
-                case 10:
-                  return [3, 12];
-                case 11:
-                  error_2 = _a.sent();
-                  throw error_2;
-                case 12:
-                  return [
-                    2
-                    /*return*/
-                  ];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.downloadDir = function(remotePath, localPath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var remoteInfo, localInfo, fileList, _i, fileList_1, f, newSrc, newDst, src, dst;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  utils.haveConnection(this, "downloadDir");
-                  return [4, utils.checkRemotePath(this, remotePath, constant_1.targetType.readDir)];
-                case 1:
-                  remoteInfo = _a.sent();
-                  if (!remoteInfo.valid) {
-                    throw new Error(remoteInfo.msg);
-                  }
-                  if (!fs_1.existsSync(localPath)) {
-                    fs_1.mkdirSync(localPath);
-                  }
-                  return [4, utils.checkLocalPath(localPath, constant_1.targetType.writeDir)];
-                case 2:
-                  localInfo = _a.sent();
-                  if (localInfo.valid && !localInfo.type) {
-                    fs_1.mkdirSync(localInfo.path, { recursive: true });
-                  }
-                  if (!localInfo.valid) {
-                    throw new Error(localInfo.msg);
-                  }
-                  return [4, this.list(remoteInfo.path)];
-                case 3:
-                  fileList = _a.sent();
-                  _i = 0, fileList_1 = fileList;
-                  _a.label = 4;
-                case 4:
-                  if (!(_i < fileList_1.length)) return [3, 10];
-                  f = fileList_1[_i];
-                  if (!(f.type === "d")) return [3, 6];
-                  newSrc = remoteInfo.path + this.remotePathSep + f.name;
-                  newDst = path_1.join(localInfo.path, f.name);
-                  return [4, this.downloadDir(newSrc, newDst)];
-                case 5:
-                  _a.sent();
-                  return [3, 9];
-                case 6:
-                  if (!(f.type === "-")) return [3, 8];
-                  src = remoteInfo.path + this.remotePathSep + f.name;
-                  dst = path_1.join(localInfo.path, f.name);
-                  return [4, this.downloadFile(src, dst)];
-                case 7:
-                  _a.sent();
-                  this.sshClient.emit("download", { source: src, destination: dst });
-                  return [3, 9];
-                case 8:
-                  console.log("downloadDir: File ignored: " + f.name + " not regular file");
-                  _a.label = 9;
-                case 9:
-                  _i++;
-                  return [3, 4];
-                case 10:
-                  return [2, remoteInfo.path + " downloaded to " + localInfo.path];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.stat = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "stat");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.stat(remotePath, function(err, stats) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve(stats);
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.setstat = function(path2, attributes) {
-          if (attributes === void 0) {
-            attributes = {};
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "setstat");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.setstat(path2, attributes, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.unlink = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "unlink");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.unlink(remotePath, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype._rmdir = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              return [2, new Promise(function(resolve, reject) {
-                return __awaiter2(_this, void 0, void 0, function() {
-                  return __generator(this, function(_a2) {
-                    this.sftpWrapper.rmdir(remotePath, function(err) {
-                      if (err) {
-                        reject(err);
-                      } else {
-                        resolve();
-                      }
-                    });
-                    return [
-                      2
-                      /*return*/
-                    ];
-                  });
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.rmdir = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var files, _i, files_1, file, fullFilename;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  return [4, this.list(remotePath)];
-                case 1:
-                  files = _a.sent();
-                  _i = 0, files_1 = files;
-                  _a.label = 2;
-                case 2:
-                  if (!(_i < files_1.length)) return [3, 7];
-                  file = files_1[_i];
-                  fullFilename = utils.joinRemote(this, remotePath, file.name);
-                  if (!(file.type === "d")) return [3, 4];
-                  return [4, this.rmdir(fullFilename)];
-                case 3:
-                  _a.sent();
-                  return [3, 6];
-                case 4:
-                  return [4, this.unlink(fullFilename)];
-                case 5:
-                  _a.sent();
-                  _a.label = 6;
-                case 6:
-                  _i++;
-                  return [3, 2];
-                case 7:
-                  return [4, this._rmdir(remotePath)];
-                case 8:
-                  _a.sent();
-                  return [
-                    2
-                    /*return*/
-                  ];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.mkdir = function(remotePath, attributes, options) {
-          if (attributes === void 0) {
-            attributes = {};
-          }
-          if (options === void 0) {
-            options = {};
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var parts, currentPath, i, exists2, err_1;
-            var _this = this;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  utils.haveConnection(this, "mkdir");
-                  if (!options.recursive) {
-                    return [2, new Promise(function(resolve, reject) {
-                      _this.sftpWrapper.mkdir(remotePath, attributes, function(err) {
-                        if (err) {
-                          reject(err);
-                        } else {
-                          resolve();
-                        }
-                      });
-                    })];
-                  }
-                  parts = remotePath.split(this.remotePathSep).filter(function(p) {
-                    return p;
-                  });
-                  currentPath = remotePath.startsWith(this.remotePathSep) ? this.remotePathSep : "";
-                  i = 0;
-                  _a.label = 1;
-                case 1:
-                  if (!(i < parts.length)) return [3, 9];
-                  currentPath = currentPath ? utils.joinRemote(this, currentPath, parts[i]) : parts[i];
-                  _a.label = 2;
-                case 2:
-                  _a.trys.push([2, 7, , 8]);
-                  return [4, this.exists(currentPath)];
-                case 3:
-                  exists2 = _a.sent();
-                  if (!!exists2) return [3, 5];
-                  return [4, new Promise(function(resolve, reject) {
-                    _this.sftpWrapper.mkdir(currentPath, attributes, function(err) {
-                      if (err) {
-                        reject(err);
-                      } else {
-                        resolve();
-                      }
-                    });
-                  })];
-                case 4:
-                  _a.sent();
-                  return [3, 6];
-                case 5:
-                  if (exists2 !== "d") {
-                    throw new Error("Cannot create directory '" + remotePath + "': Path exists and is not a directory");
-                  }
-                  _a.label = 6;
-                case 6:
-                  return [3, 8];
-                case 7:
-                  err_1 = _a.sent();
-                  if (err_1.code !== "EEXIST") {
-                    throw err_1;
-                  }
-                  return [3, 8];
-                case 8:
-                  i++;
-                  return [3, 1];
-                case 9:
-                  return [
-                    2
-                    /*return*/
-                  ];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.exists = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var stats, error_3;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  utils.haveConnection(this, "exists");
-                  _a.label = 1;
-                case 1:
-                  _a.trys.push([1, 3, , 4]);
-                  return [4, this.stat(remotePath)];
-                case 2:
-                  stats = _a.sent();
-                  if (stats.isDirectory()) {
-                    return [2, "d"];
-                  }
-                  if (stats.isSymbolicLink()) {
-                    return [2, "l"];
-                  }
-                  if (stats.isFile()) {
-                    return [2, "-"];
-                  }
-                  return [2, false];
-                case 3:
-                  error_3 = _a.sent();
-                  return [2, false];
-                case 4:
-                  return [
-                    2
-                    /*return*/
-                  ];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.writeFile = function(remotePath, data, options) {
-          if (options === void 0) {
-            options = {};
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "writeFile");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.writeFile(remotePath, data, options, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.utimes = function(path2, atime, mtime) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "utimes");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.utimes(path2, atime, mtime, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.symlink = function(targetPath, linkPath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "symlink");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.symlink(targetPath, linkPath, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.rename = function(srcPath, destPath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "rename");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.rename(srcPath, destPath, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.readlink = function(path2) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "readlink");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.readlink(path2, function(err, target) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve(target);
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.readFile = function(remotePath) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "readFile");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.readFile(remotePath, function(err, handle) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve(handle);
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.lstat = function(path2) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "lstat");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.lstat(path2, function(err, stats) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve(stats);
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.appendFile = function(remotePath, data, options) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "appendFile");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.appendFile(remotePath, data, options, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.chmod = function(path2, mode) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "chmod");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.chmod(path2, mode, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.chown = function(path2, uid, gid) {
-          return __awaiter2(this, void 0, void 0, function() {
-            var _this = this;
-            return __generator(this, function(_a) {
-              utils.haveConnection(this, "chown");
-              return [2, new Promise(function(resolve, reject) {
-                _this.sftpWrapper.chown(path2, uid, gid, function(err) {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve();
-                  }
-                });
-              })];
-            });
-          });
-        };
-        ScpClient3.prototype.close = function() {
-          if (this.sshClient && this.sftpWrapper) {
-            this.sshClient.end();
-            this.sshClient = null;
-            this.sftpWrapper = null;
-          }
-          this.endCalled = true;
-        };
-        ScpClient3.prototype.list = function(remotePath, pattern) {
-          if (pattern === void 0) {
-            pattern = /.*/;
-          }
-          return __awaiter2(this, void 0, void 0, function() {
-            var _list, pathInfo;
-            var _this = this;
-            return __generator(this, function(_a) {
-              switch (_a.label) {
-                case 0:
-                  _list = function(aPath, filter) {
-                    return new Promise(function(resolve, reject) {
-                      var reg = /-/gi;
-                      _this.sftpWrapper.readdir(aPath, function(err, fileList) {
-                        if (err) {
-                          reject(err);
-                        } else {
-                          var newList = [];
-                          if (fileList) {
-                            newList = fileList.map(function(item) {
-                              return {
-                                type: item.longname.substr(0, 1),
-                                name: item.filename,
-                                size: item.attrs.size,
-                                modifyTime: item.attrs.mtime * 1e3,
-                                accessTime: item.attrs.atime * 1e3,
-                                rights: {
-                                  user: item.longname.substr(1, 3).replace(reg, ""),
-                                  group: item.longname.substr(4, 3).replace(reg, ""),
-                                  other: item.longname.substr(7, 3).replace(reg, "")
-                                },
-                                owner: item.attrs.uid,
-                                group: item.attrs.gid
-                              };
-                            });
-                          }
-                          var regex_1;
-                          if (filter instanceof RegExp) {
-                            regex_1 = filter;
-                          } else {
-                            var newPattern = filter.replace(/\*([^*])*?/gi, ".*");
-                            regex_1 = new RegExp(newPattern);
-                          }
-                          resolve(newList.filter(function(item) {
-                            return regex_1.test(item.name);
-                          }));
-                        }
-                      });
-                    });
-                  };
-                  utils.haveConnection(this, "list");
-                  return [4, utils.checkRemotePath(this, remotePath, constant_1.targetType.readDir)];
-                case 1:
-                  pathInfo = _a.sent();
-                  if (!pathInfo.valid) {
-                    throw new Error("Remote path is invalid");
-                  }
-                  return [2, _list(pathInfo.path, pattern)];
-              }
-            });
-          });
-        };
-        ScpClient3.prototype.realPath = function(remotePath) {
-          var _this = this;
-          return new Promise(function(resolve, reject) {
-            var closeListener = utils.makeCloseListener(_this, reject, "realPath");
-            _this.sshClient.prependListener("close", closeListener);
-            var errorListener = utils.makeErrorListener(reject, _this, "realPath");
-            _this.sshClient.prependListener("error", errorListener);
-            if (utils.haveConnection(_this, "realPath", reject)) {
-              _this.sftpWrapper.realpath(remotePath, function(err, absPath) {
-                if (err) {
-                  reject(utils.formatError(err.message + " " + remotePath, "realPath"));
-                }
-                resolve(absPath);
-                _this.removeListener("error", errorListener);
-                _this.removeListener("close", closeListener);
-              });
-            }
-          });
-        };
-        return ScpClient3;
-      })(events_1.EventEmitter)
-    );
-    exports2.ScpClient = ScpClient2;
-    function Client2(options) {
-      return __awaiter2(this, void 0, void 0, function() {
-        var client;
-        return __generator(this, function(_a) {
-          client = new ScpClient2(options);
-          return [2, new Promise(function(resolve, reject) {
-            client.on("ready", function() {
-              resolve(client);
-            });
-            client.on("error", function(err) {
-              reject(err);
-            });
-            client.on("close", function() {
-              client.removeAllListeners();
-            });
-            var _loop_1 = function(event_12) {
-              client.on(event_12, function() {
-                var _a2;
-                var args = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                  args[_i] = arguments[_i];
-                }
-                (_a2 = options.events)[event_12].apply(_a2, args);
-              });
-            };
-            for (var event_1 in options.events) {
-              _loop_1(event_1);
-            }
-          })];
-        });
-      });
-    }
-    exports2.Client = Client2;
-    exports2.default = Client2;
-  }
-});
-
 // ../node_modules/@actions/core/lib/command.js
 var os = __toESM(require("os"), 1);
 
@@ -41195,7 +39328,1841 @@ function error(message, properties = {}) {
 // index.ts
 var fs2 = __toESM(require("fs"));
 var path = __toESM(require("path"));
-var import_node_scp = __toESM(require_lib4());
+
+// ../node_modules/node-scp/dist/client-BuWEcGQB.mjs
+var import_ssh2 = __toESM(require_lib3(), 1);
+var import_node_path = require("node:path");
+var import_node_fs = require("node:fs");
+var import_promises = require("node:fs/promises");
+var import_node_stream = require("node:stream");
+var import_promises2 = require("node:stream/promises");
+var ErrorCode = {
+  InvalidArgument: "ERR_INVALID_ARGUMENT",
+  ConnectionFailed: "ERR_CONNECTION_FAILED",
+  AuthFailed: "ERR_AUTH_FAILED",
+  Timeout: "ERR_TIMEOUT",
+  NotConnected: "ERR_NOT_CONNECTED",
+  ConnectionClosed: "ERR_CONNECTION_CLOSED",
+  SftpUnavailable: "ERR_SFTP_UNAVAILABLE",
+  ScpUnavailable: "ERR_SCP_UNAVAILABLE",
+  ScpProtocol: "ERR_SCP_PROTOCOL",
+  Unsupported: "ERR_UNSUPPORTED",
+  NotFound: "ERR_NOT_FOUND",
+  PermissionDenied: "ERR_PERMISSION_DENIED",
+  NotADirectory: "ERR_NOT_A_DIRECTORY",
+  IsADirectory: "ERR_IS_A_DIRECTORY",
+  AlreadyExists: "ERR_ALREADY_EXISTS",
+  Remote: "ERR_REMOTE",
+  Local: "ERR_LOCAL",
+  Aborted: "ERR_ABORTED"
+};
+var ScpError = class extends Error {
+  name = "ScpError";
+  code;
+  path;
+  constructor(code, message, options = {}) {
+    super(message, options.cause === void 0 ? void 0 : { cause: options.cause });
+    this.code = code;
+    this.path = options.path;
+  }
+};
+function isScpError(value, code) {
+  return value instanceof ScpError && (code === void 0 || value.code === code);
+}
+function abortError(signal) {
+  const reason = signal?.reason;
+  const detail = reason instanceof Error ? `: ${reason.message}` : "";
+  return new ScpError(ErrorCode.Aborted, `Operation aborted${detail}`, { cause: reason });
+}
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw abortError(signal);
+}
+function sizeMismatch(actual, declared) {
+  return new ScpError(ErrorCode.InvalidArgument, actual > declared ? `The stream is longer than the declared size of ${declared} bytes` : `The stream ended after ${actual} bytes but size was declared as ${declared}`);
+}
+function messageOf(err) {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+var SFTP_STATUS = {
+  2: ErrorCode.NotFound,
+  3: ErrorCode.PermissionDenied,
+  4: ErrorCode.Remote,
+  5: ErrorCode.Remote,
+  6: ErrorCode.ConnectionClosed,
+  7: ErrorCode.ConnectionClosed,
+  8: ErrorCode.Unsupported
+};
+function fromSftpError(err, operation, path2) {
+  if (err instanceof ScpError) return err;
+  const code = err?.code;
+  const mapped = typeof code === "number" ? SFTP_STATUS[code] : typeof code === "string" ? ERRNO[code] ?? ErrorCode.Local : void 0;
+  const where = path2 === void 0 ? "" : ` '${path2}'`;
+  return new ScpError(mapped ?? ErrorCode.Remote, `${operation}${where} failed: ${messageOf(err)}`, {
+    cause: err,
+    path: path2
+  });
+}
+var ERRNO = {
+  ENOENT: ErrorCode.NotFound,
+  EACCES: ErrorCode.PermissionDenied,
+  EPERM: ErrorCode.PermissionDenied,
+  ENOTDIR: ErrorCode.NotADirectory,
+  EISDIR: ErrorCode.IsADirectory,
+  EEXIST: ErrorCode.AlreadyExists
+};
+function fromLocalError(err, operation, path2) {
+  if (err instanceof ScpError) return err;
+  const code = err?.code;
+  const mapped = typeof code === "string" ? ERRNO[code] : void 0;
+  const where = path2 === void 0 ? "" : ` '${path2}'`;
+  return new ScpError(mapped ?? ErrorCode.Local, `${operation}${where} failed locally: ${messageOf(err)}`, {
+    cause: err,
+    path: path2
+  });
+}
+function fromConnectError(err) {
+  if (err instanceof ScpError) return err;
+  const level = err?.level;
+  const message = messageOf(err);
+  if (level === "client-authentication") return new ScpError(ErrorCode.AuthFailed, `Authentication failed: ${message}`, { cause: err });
+  if (level === "client-timeout" || /timed out/i.test(message)) return new ScpError(ErrorCode.Timeout, `Connection timed out: ${message}`, { cause: err });
+  return new ScpError(ErrorCode.ConnectionFailed, `Connection failed: ${message}`, { cause: err });
+}
+function codeFromRemoteMessage(message) {
+  if (/no such file or directory/i.test(message)) return ErrorCode.NotFound;
+  if (/permission denied/i.test(message)) return ErrorCode.PermissionDenied;
+  if (/is a directory/i.test(message)) return ErrorCode.IsADirectory;
+  if (/not a directory/i.test(message)) return ErrorCode.NotADirectory;
+  if (/not a regular file/i.test(message)) return ErrorCode.IsADirectory;
+  return ErrorCode.Remote;
+}
+function makeApi(os4) {
+  const impl = os4 === "win32" ? import_node_path.win32 : import_node_path.posix;
+  const trailing = os4 === "win32" ? /[\\/]+$/ : /\/+$/;
+  return {
+    os: os4,
+    join: (...parts) => impl.join(...parts),
+    dirname: (path2) => impl.dirname(path2),
+    basename: (path2) => impl.basename(path2),
+    trimTrailing(path2) {
+      const trimmed = path2.replace(trailing, "");
+      if (trimmed === "") return path2.length > 0 ? path2[0] : path2;
+      if (os4 === "win32" && /^[A-Za-z]:$/.test(trimmed)) return `${trimmed}\\`;
+      return trimmed;
+    }
+  };
+}
+var APIS = {
+  posix: makeApi("posix"),
+  win32: makeApi("win32")
+};
+function remotePath(os4 = "posix") {
+  return APIS[os4];
+}
+function isSafeReceivedName(name, localPlatform = process.platform) {
+  return !(name === "" || name === "." || name === ".." || name.includes("/") || name.includes("\0") || localPlatform === "win32" && (name.includes("\\") || name.includes(":")));
+}
+function creationMode(mode, preserve) {
+  return preserve ? mode & 4095 : mode & 511;
+}
+var SAFE_POSIX = /^[A-Za-z0-9_@%+=:,./-]+$/;
+function quotePosix(arg) {
+  if (arg.includes("\0")) throw new ScpError(ErrorCode.InvalidArgument, "Paths must not contain NUL bytes");
+  if (arg === "") return "''";
+  if (SAFE_POSIX.test(arg)) return arg;
+  return `'${arg.replaceAll("'", `'\\''`)}'`;
+}
+function isSafeForWindowsShell(arg) {
+  return !/["%!^$`\0\r\n]/.test(arg);
+}
+function quoteWindows(arg) {
+  if (!isSafeForWindowsShell(arg)) throw new ScpError(ErrorCode.InvalidArgument, `Path ${JSON.stringify(arg)} contains characters that cannot be passed safely to a Windows shell`);
+  return `"${arg.replace(/\\+$/, "$&$&")}"`;
+}
+function quoteArg(arg, os4) {
+  return os4 === "win32" ? quoteWindows(arg) : quotePosix(arg);
+}
+function seconds(ms) {
+  return Math.floor(ms / 1e3);
+}
+function entryType(st) {
+  if (st.isFile()) return "file";
+  if (st.isDirectory()) return "directory";
+  if (st.isSymbolicLink()) return "symlink";
+  return "other";
+}
+async function statLocal(path2) {
+  try {
+    return await (0, import_promises.stat)(path2);
+  } catch (err) {
+    throw fromLocalError(err, "stat", path2);
+  }
+}
+function fileNode(abs, rel, name, st) {
+  return {
+    kind: "file",
+    rel,
+    name,
+    abs,
+    size: st.size,
+    mode: st.mode & 4095,
+    atime: seconds(st.atimeMs),
+    mtime: seconds(st.mtimeMs)
+  };
+}
+async function walkLocal(root, filter, signal) {
+  const rootStat = await statLocal(root);
+  const seen = /* @__PURE__ */ new Set();
+  async function visit(abs, rel, name, st) {
+    throwIfAborted(signal);
+    const key = `${st.dev}:${st.ino}`;
+    if (seen.has(key)) throw new ScpError(ErrorCode.Local, `Symlink loop detected at '${abs}'`, { path: abs });
+    seen.add(key);
+    const node = {
+      kind: "dir",
+      rel,
+      name,
+      abs,
+      mode: st.mode & 4095,
+      atime: seconds(st.atimeMs),
+      mtime: seconds(st.mtimeMs),
+      children: []
+    };
+    let names;
+    try {
+      names = (await (0, import_promises.readdir)(abs)).sort();
+    } catch (err) {
+      throw fromLocalError(err, "readdir", abs);
+    }
+    for (const child of names) {
+      const childAbs = (0, import_node_path.join)(abs, child);
+      const childRel = rel === "" ? child : `${rel}/${child}`;
+      const childStat = await statLocal(childAbs);
+      const info = {
+        type: entryType(childStat),
+        size: childStat.size,
+        mode: childStat.mode & 4095
+      };
+      if (info.type !== "file" && info.type !== "directory") continue;
+      if (filter && !filter(childRel, info)) continue;
+      if (childStat.isDirectory()) node.children.push(await visit(childAbs, childRel, child, childStat));
+      else node.children.push(fileNode(childAbs, childRel, child, childStat));
+    }
+    seen.delete(key);
+    return node;
+  }
+  return visit(root, "", "", rootStat);
+}
+function totals(node) {
+  if (node.kind === "file") return {
+    files: 1,
+    directories: 0,
+    bytes: node.size
+  };
+  const sum = {
+    files: 0,
+    directories: 1,
+    bytes: 0
+  };
+  for (const child of node.children) {
+    const t = totals(child);
+    sum.files += t.files;
+    sum.directories += t.directories;
+    sum.bytes += t.bytes;
+  }
+  return sum;
+}
+function flatten(root) {
+  const dirs = [];
+  const files = [];
+  dirs.push(root);
+  for (let i = 0; i < dirs.length; i++) for (const child of dirs[i].children) if (child.kind === "dir") dirs.push(child);
+  else files.push(child);
+  return {
+    dirs,
+    files
+  };
+}
+async function ensureLocalDir(path2) {
+  try {
+    await (0, import_promises.mkdir)(path2, { recursive: true });
+  } catch (err) {
+    throw fromLocalError(err, "mkdir", path2);
+  }
+  if (!(await statLocal(path2)).isDirectory()) throw new ScpError(ErrorCode.NotADirectory, `'${path2}' exists and is not a directory`, { path: path2 });
+}
+async function applyLocalAttributes(path2, attrs) {
+  try {
+    if (attrs.mode !== void 0) await (0, import_promises.chmod)(path2, attrs.mode & 4095);
+    if (attrs.mtime !== void 0) await (0, import_promises.utimes)(path2, attrs.atime ?? attrs.mtime, attrs.mtime);
+  } catch (err) {
+    throw fromLocalError(err, "set attributes on", path2);
+  }
+}
+var ProgressTracker = class {
+  transferred = 0;
+  filesCompleted = 0;
+  directories = 0;
+  #onProgress;
+  #total;
+  #filesTotal;
+  #perFile = /* @__PURE__ */ new Map();
+  constructor(onProgress, total, filesTotal) {
+    this.#onProgress = onProgress;
+    this.#total = total;
+    this.#filesTotal = filesTotal;
+  }
+  /** Records that `fileTransferred` bytes of `path` have moved so far. */
+  update(path2, fileTransferred, fileSize) {
+    const delta = fileTransferred - (this.#perFile.get(path2) ?? 0);
+    if (delta <= 0 && fileTransferred !== 0) return;
+    this.#perFile.set(path2, fileTransferred);
+    this.transferred += Math.max(0, delta);
+    this.#emit(path2, fileTransferred, fileSize);
+  }
+  complete(path2, fileSize) {
+    const previous = this.#perFile.get(path2) ?? 0;
+    if (fileSize > previous) this.transferred += fileSize - previous;
+    this.#perFile.delete(path2);
+    this.filesCompleted++;
+    this.#emit(path2, fileSize, fileSize);
+  }
+  #emit(path2, fileTransferred, fileSize) {
+    this.#onProgress?.({
+      path: path2,
+      fileTransferred,
+      fileSize,
+      transferred: this.transferred,
+      total: this.#total,
+      filesCompleted: this.filesCompleted,
+      filesTotal: this.#filesTotal
+    });
+  }
+};
+function octal(mode) {
+  return (mode & 4095).toString(8).padStart(4, "0");
+}
+function assertSendableName(name) {
+  if (name === "" || name === "." || name === ".." || /[/\n\0]/.test(name)) throw new ScpError(ErrorCode.InvalidArgument, `File name ${JSON.stringify(name)} cannot be sent over SCP`);
+}
+function encodeFile(mode, size, name) {
+  assertSendableName(name);
+  return `C${octal(mode)} ${size} ${name}
+`;
+}
+function encodeDirectory(mode, name) {
+  assertSendableName(name);
+  return `D${octal(mode)} 0 ${name}
+`;
+}
+function encodeTimes(mtime, atime) {
+  return `T${Math.floor(mtime)} 0 ${Math.floor(atime)} 0
+`;
+}
+function assertSafeReceivedName(name, localPlatform = process.platform) {
+  if (!isSafeReceivedName(name, localPlatform)) throw new ScpError(ErrorCode.ScpProtocol, `Server sent an unsafe file name ${JSON.stringify(name)}`);
+}
+function protocolError(line) {
+  return new ScpError(ErrorCode.ScpProtocol, `Unexpected SCP control record ${JSON.stringify(line.slice(0, 200))}`);
+}
+function parseRecord(line) {
+  switch (line[0]) {
+    case "C":
+    case "D": {
+      const match = /^([CD])([0-7]{3,5}) (\d+) (.+)$/s.exec(line);
+      if (!match) throw protocolError(line);
+      const size = Number(match[3]);
+      if (!Number.isSafeInteger(size)) throw protocolError(line);
+      const mode = Number.parseInt(match[2], 8) & 4095;
+      const name = match[4];
+      if (match[1] === "D") return {
+        type: "D",
+        mode,
+        name
+      };
+      return {
+        type: "C",
+        mode,
+        size,
+        name
+      };
+    }
+    case "E":
+      if (line !== "E") throw protocolError(line);
+      return { type: "E" };
+    case "T": {
+      const match = /^T(\d+) (\d+) (\d+) (\d+)$/.exec(line);
+      if (!match) throw protocolError(line);
+      return {
+        type: "T",
+        mtime: Number(match[1]),
+        atime: Number(match[3])
+      };
+    }
+    default:
+      throw protocolError(line);
+  }
+}
+var HIGH_WATER_MARK = 1 << 20;
+var LOW_WATER_MARK = 1 << 18;
+var EndOfStreamError = class extends Error {
+  name = "EndOfStreamError";
+};
+var ByteReader = class {
+  #stream;
+  #chunks = [];
+  #size = 0;
+  #ended = false;
+  #error;
+  #paused = false;
+  #wake;
+  constructor(stream) {
+    this.#stream = stream;
+    stream.on("data", (chunk) => {
+      this.#chunks.push(chunk);
+      this.#size += chunk.length;
+      if (this.#size >= HIGH_WATER_MARK && !this.#paused) {
+        this.#paused = true;
+        stream.pause();
+      }
+      this.#notify();
+    });
+    const end = () => {
+      this.#ended = true;
+      this.#notify();
+    };
+    stream.on("end", end);
+    stream.on("close", end);
+    stream.on("error", (err) => {
+      this.#error = err;
+      this.#notify();
+    });
+  }
+  /** Makes every pending and future read fail with `err`, without waiting for the stream. */
+  fail(err) {
+    this.#error ??= err;
+    this.#notify();
+  }
+  /** Reads one byte, or returns `null` at a clean end of stream. */
+  async readByte() {
+    if (!await this.#fill(1)) return null;
+    return this.#take(1)[0];
+  }
+  /** Reads up to and excluding the next `\n`. */
+  async readLine(maxLength = 65536) {
+    for (; ; ) {
+      const index = this.#indexOfNewline();
+      if (index !== -1) return this.#take(index + 1).subarray(0, index).toString("utf8");
+      if (this.#size > maxLength) throw new Error("SCP control line is too long");
+      if (!await this.#fill(this.#size + 1)) throw new EndOfStreamError("Channel closed in the middle of a control line");
+    }
+  }
+  /** Yields exactly `length` bytes as they arrive. */
+  async *readExactly(length) {
+    let remaining = length;
+    while (remaining > 0) {
+      if (!await this.#fill(1)) throw new EndOfStreamError(`Channel closed with ${remaining} bytes still expected`);
+      const chunk = this.#take(Math.min(remaining, this.#chunks[0].length));
+      remaining -= chunk.length;
+      yield chunk;
+    }
+  }
+  #indexOfNewline() {
+    let offset = 0;
+    for (const chunk of this.#chunks) {
+      const i = chunk.indexOf(10);
+      if (i !== -1) return offset + i;
+      offset += chunk.length;
+    }
+    return -1;
+  }
+  async #fill(n) {
+    while (this.#size < n) {
+      if (this.#error) throw this.#error;
+      if (this.#ended) return false;
+      await new Promise((resolve) => {
+        this.#wake = resolve;
+      });
+    }
+    return true;
+  }
+  #take(n) {
+    let out;
+    const first = this.#chunks[0];
+    if (first.length === n) {
+      out = first;
+      this.#chunks.shift();
+    } else if (first.length > n) {
+      out = first.subarray(0, n);
+      this.#chunks[0] = first.subarray(n);
+    } else {
+      out = Buffer.allocUnsafe(n);
+      let written = 0;
+      while (written < n) {
+        const chunk = this.#chunks[0];
+        const count = Math.min(chunk.length, n - written);
+        chunk.copy(out, written, 0, count);
+        written += count;
+        if (count === chunk.length) this.#chunks.shift();
+        else this.#chunks[0] = chunk.subarray(count);
+      }
+    }
+    this.#size -= n;
+    if (this.#paused && this.#size <= LOW_WATER_MARK) {
+      this.#paused = false;
+      this.#stream.resume();
+    }
+    return out;
+  }
+  #notify() {
+    const wake = this.#wake;
+    this.#wake = void 0;
+    wake?.();
+  }
+};
+var EXIT_WAIT_MS = 5e3;
+var ScpChannel = class ScpChannel2 {
+  reader;
+  #stream;
+  #command;
+  #stderr = "";
+  #exitCode;
+  #exitSignal;
+  #closed = false;
+  #closedPromise;
+  #signal;
+  #onAbort;
+  #handshakeTimer;
+  #handshakeTimedOut = false;
+  /** Set once the server sent something valid in SCP, until then garbage means "not SCP". */
+  #spoke = false;
+  #handshakeTimeout;
+  constructor(stream, command, options) {
+    this.#stream = stream;
+    this.#command = command;
+    this.#signal = options.signal;
+    this.#handshakeTimeout = options.handshakeTimeout ?? 0;
+    this.reader = new ByteReader(stream);
+    if (this.#handshakeTimeout > 0) {
+      this.#handshakeTimer = setTimeout(() => {
+        this.#handshakeTimedOut = true;
+        stream.destroy();
+      }, this.#handshakeTimeout);
+      const answered = () => this.#clearHandshake();
+      stream.once("data", answered);
+      stream.stderr.once("data", answered);
+      stream.once("close", answered);
+    }
+    stream.stderr.on("data", (chunk) => {
+      if (this.#stderr.length < 16384) this.#stderr += chunk.toString("utf8");
+    });
+    stream.on("exit", (code, signalName) => {
+      this.#exitCode = code;
+      this.#exitSignal = signalName;
+    });
+    this.#closedPromise = new Promise((resolve) => {
+      stream.once("close", () => {
+        this.#closed = true;
+        resolve();
+      });
+    });
+    this.#onAbort = () => {
+      this.reader.fail(abortError(options.signal));
+      stream.destroy();
+    };
+    options.signal?.addEventListener("abort", this.#onAbort, { once: true });
+  }
+  #clearHandshake() {
+    if (this.#handshakeTimer) clearTimeout(this.#handshakeTimer);
+    this.#handshakeTimer = void 0;
+  }
+  static open(ssh, command, options = {}) {
+    const { signal } = options;
+    if (signal?.aborted) return Promise.reject(abortError(signal));
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const settle = () => {
+        if (settled) return false;
+        settled = true;
+        signal?.removeEventListener("abort", onAbort);
+        return true;
+      };
+      const onAbort = () => {
+        if (settle()) reject(abortError(signal));
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
+      try {
+        ssh.exec(command, (err, stream) => {
+          if (!settle()) {
+            stream?.destroy();
+            return;
+          }
+          if (err) {
+            reject(new ScpError(ErrorCode.ScpUnavailable, `The server refused to run '${command}': ${err.message}`, { cause: err }));
+            return;
+          }
+          resolve(new ScpChannel2(stream, command, options));
+        });
+      } catch (err) {
+        if (settle()) reject(new ScpError(ErrorCode.NotConnected, "The SSH connection is not usable", { cause: err }));
+      }
+    });
+  }
+  write(data) {
+    if (this.#closed) return Promise.reject(this.#closedError());
+    const signal = this.#signal;
+    if (signal?.aborted) return Promise.reject(abortError(signal));
+    return new Promise((resolve, reject) => {
+      const onClose = () => {
+        cleanup();
+        reject(this.#closedError());
+      };
+      const onAbort = () => {
+        cleanup();
+        reject(abortError(signal));
+      };
+      const onDrain = () => {
+        cleanup();
+        resolve();
+      };
+      const cleanup = () => {
+        this.#stream.off("close", onClose);
+        this.#stream.off("drain", onDrain);
+        signal?.removeEventListener("abort", onAbort);
+      };
+      this.#stream.once("close", onClose);
+      signal?.addEventListener("abort", onAbort, { once: true });
+      if (this.#stream.write(data)) {
+        cleanup();
+        resolve();
+      } else this.#stream.once("drain", onDrain);
+    });
+  }
+  /** Reads one status byte and throws a mapped error for anything but OK. */
+  async expectOk(context) {
+    const status = await this.#readByteOrFail(context);
+    if (status === 0) {
+      this.#spoke = true;
+      return;
+    }
+    if (status !== 1 && status !== 2 && !this.#spoke) {
+      let rest = "";
+      try {
+        rest = await this.reader.readLine();
+      } catch {
+      }
+      throw this.#notScp(String.fromCharCode(status) + rest);
+    }
+    await this.#throwStatus(status, context);
+  }
+  /** Parses a control record line. Before any valid SCP output, garbage means "not SCP". */
+  parseRecord(line) {
+    try {
+      const record = parseRecord(line);
+      this.#spoke = true;
+      return record;
+    } catch (err) {
+      if (!this.#spoke) throw this.#notScp(line);
+      throw err;
+    }
+  }
+  #notScp(output) {
+    const text = output.trim().slice(0, 200);
+    return new ScpError(ErrorCode.ScpUnavailable, `'${this.#command}' did not answer in the SCP protocol, the server may only allow SFTP${text ? `: ${text}` : ""}`);
+  }
+  /** Reads the first byte of the next record, `null` when the remote finished cleanly. */
+  async nextByte() {
+    try {
+      return await this.reader.readByte();
+    } catch (err) {
+      throw await this.failure("reading from the server", err);
+    }
+  }
+  async readLine(context) {
+    try {
+      return await this.reader.readLine();
+    } catch (err) {
+      throw await this.failure(context, err);
+    }
+  }
+  /** Throws the error that a non-zero status byte announces. */
+  async #throwStatus(status, context) {
+    if (status === 1 || status === 2) {
+      let message = "";
+      try {
+        message = await this.reader.readLine();
+      } catch {
+        message = this.#stderr.trim();
+      }
+      message = message.replace(/^scp: /, "").trim() || `remote error while ${context}`;
+      throw new ScpError(codeFromRemoteMessage(message), message);
+    }
+    throw new ScpError(ErrorCode.ScpProtocol, `Unexpected status byte 0x${status.toString(16)} while ${context}`);
+  }
+  async throwStatus(status, context) {
+    return this.#throwStatus(status, context);
+  }
+  async #readByteOrFail(context) {
+    let value;
+    try {
+      value = await this.reader.readByte();
+    } catch (err) {
+      throw await this.failure(context, err);
+    }
+    if (value === null) throw await this.failure(context, new EndOfStreamError("channel closed"));
+    return value;
+  }
+  /** Builds the most useful error for a channel that stopped unexpectedly. */
+  async failure(context, cause) {
+    if (cause instanceof ScpError) return cause;
+    if (this.#signal?.aborted) return abortError(this.#signal);
+    if (this.#handshakeTimedOut) return new ScpError(ErrorCode.ScpUnavailable, `'${this.#command}' did not answer within ${this.#handshakeTimeout} ms. The server may only allow SFTP.`, { cause });
+    await this.#waitForClose();
+    const stderr = this.#stderr.trim();
+    if (this.#exitCode === 127 || /(?:^|\s)scp: (?:command )?not found/im.test(stderr) || /disable_scp|sftp connections only/i.test(stderr)) return new ScpError(ErrorCode.ScpUnavailable, `'${this.#command}' is not available on the server${stderr ? `: ${stderr}` : ""}`, { cause });
+    const exit = this.#exitCode !== void 0 && this.#exitCode !== null ? ` (exit code ${this.#exitCode})` : this.#exitSignal ? ` (signal ${this.#exitSignal})` : "";
+    const detail = stderr || (cause instanceof Error ? cause.message : String(cause));
+    return new ScpError(stderr ? codeFromRemoteMessage(stderr) : ErrorCode.ConnectionClosed, `SCP channel closed while ${context}${exit}: ${detail}`, { cause });
+  }
+  /** Sends EOF and waits for the remote process to exit, checking its status. */
+  async finish(context) {
+    this.#stream.end();
+    await this.#waitForClose();
+    this.#detach();
+    if (!this.#closed) this.#stream.destroy();
+    if (this.#exitCode !== void 0 && this.#exitCode !== null && this.#exitCode !== 0) {
+      const stderr = this.#stderr.trim();
+      throw new ScpError(stderr ? codeFromRemoteMessage(stderr) : ErrorCode.Remote, `Remote scp exited with code ${this.#exitCode} after ${context}${stderr ? `: ${stderr}` : ""}`);
+    }
+  }
+  destroy() {
+    this.#detach();
+    if (!this.#closed) this.#stream.destroy();
+  }
+  #detach() {
+    this.#clearHandshake();
+    this.#signal?.removeEventListener("abort", this.#onAbort);
+    this.#signal = void 0;
+  }
+  #closedError() {
+    if (this.#signal?.aborted) return abortError(this.#signal);
+    const stderr = this.#stderr.trim();
+    return new ScpError(ErrorCode.ConnectionClosed, `SCP channel closed unexpectedly${stderr ? `: ${stderr}` : ""}`);
+  }
+  async #waitForClose() {
+    if (this.#closed) return;
+    let timer;
+    await Promise.race([this.#closedPromise, new Promise((resolve) => {
+      timer = setTimeout(resolve, EXIT_WAIT_MS);
+    })]);
+    if (timer) clearTimeout(timer);
+  }
+};
+var ZERO = Buffer.from([0]);
+var ScpTransport = class {
+  protocol = "scp";
+  #ssh;
+  #scp;
+  #paths;
+  #handshakeTimeout;
+  constructor(ssh, options) {
+    this.#ssh = ssh;
+    this.#scp = options.scpCommand;
+    this.#paths = options.paths;
+    this.#handshakeTimeout = options.handshakeTimeout;
+  }
+  async upload(localPath, remotePath2, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    const st = await statLocal(localPath);
+    const isDir = st.isDirectory();
+    if (!isDir && !st.isFile()) throw new ScpError(ErrorCode.Local, `'${localPath}' is not a regular file or directory`, { path: localPath });
+    if (isDir && !options.recursive) throw new ScpError(ErrorCode.IsADirectory, `'${localPath}' is a directory, pass { recursive: true } to copy it`, { path: localPath });
+    const { parent, name } = this.#split(remotePath2);
+    const root = isDir ? await walkLocal(localPath, options.filter, signal) : fileNode(localPath, name, name, st);
+    const sum = totals(root);
+    const progress = new ProgressTracker(options.onProgress, sum.bytes, sum.files);
+    const channel = await this.#openSink(parent, isDir, options.preserve ?? false, signal);
+    try {
+      await channel.expectOk("starting the upload");
+      if (root.kind === "dir") await this.#sendDirectory(channel, root, name, options, progress);
+      else await this.#sendFile(channel, root, name, options, progress);
+      await channel.finish("the upload");
+    } catch (err) {
+      channel.destroy();
+      throw signal?.aborted ? abortError(signal) : err;
+    }
+    return {
+      files: sum.files,
+      directories: sum.directories,
+      bytes: sum.bytes
+    };
+  }
+  async download(remotePath2, localPath, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    const flags = ["-f"];
+    if (options.recursive) flags.push("-r");
+    if (options.preserve) flags.push("-p");
+    const channel = await this.#open(flags, remotePath2, signal);
+    const progress = new ProgressTracker(options.onProgress, void 0, void 0);
+    const result = {
+      files: 0,
+      directories: 0,
+      bytes: 0
+    };
+    try {
+      await this.#receive(channel, localPath, options, progress, result);
+      await channel.finish("the download");
+    } catch (err) {
+      channel.destroy();
+      if (signal?.aborted) throw abortError(signal);
+      throw isScpError(err) ? err : await channel.failure("downloading", err);
+    }
+    return result;
+  }
+  async writeFile(remotePath2, data, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    let body;
+    let size;
+    if (typeof data === "string" || data instanceof Uint8Array) {
+      body = Buffer.from(data);
+      size = body.length;
+    } else if (options.size !== void 0) {
+      body = data;
+      size = options.size;
+    } else {
+      const chunks = [];
+      try {
+        for await (const chunk of data) chunks.push(Buffer.from(chunk));
+      } catch (err) {
+        throwIfAborted(signal);
+        throw fromLocalError(err, "read the source of", remotePath2);
+      }
+      body = Buffer.concat(chunks);
+      size = body.length;
+    }
+    const { parent, name } = this.#split(remotePath2);
+    const channel = await this.#openSink(parent, false, false, signal);
+    try {
+      await channel.expectOk("starting the upload");
+      await channel.write(encodeFile(options.mode ?? 420, size, name));
+      await channel.expectOk(`creating '${remotePath2}'`);
+      const source = Buffer.isBuffer(body) ? import_node_stream.Readable.from([body]) : body;
+      const sent = await this.#pump(channel, source, size, () => {
+      }, true);
+      if (sent !== size) throw sizeMismatch(sent, size);
+      await channel.write(ZERO);
+      await channel.expectOk(`writing '${remotePath2}'`);
+      await channel.finish("the upload");
+    } catch (err) {
+      channel.destroy();
+      throw signal?.aborted ? abortError(signal) : err;
+    }
+  }
+  async readFile(remotePath2, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    const channel = await this.#open(["-f"], remotePath2, signal);
+    try {
+      await channel.write(ZERO);
+      let first = await channel.nextByte();
+      while (first === 84) {
+        channel.parseRecord(`T${await channel.readLine("reading times")}`);
+        await channel.write(ZERO);
+        first = await channel.nextByte();
+      }
+      if (first === null) throw await channel.failure("waiting for the file", "no data");
+      if (first !== 67) {
+        if (first === 1 || first === 2) await channel.throwStatus(first, `reading '${remotePath2}'`);
+        throw new ScpError(ErrorCode.ScpProtocol, `Expected a file record for '${remotePath2}'`);
+      }
+      const record = channel.parseRecord(`C${await channel.readLine("reading the file header")}`);
+      if (record.type !== "C") throw new ScpError(ErrorCode.ScpProtocol, "Expected a file record");
+      await channel.write(ZERO);
+      const chunks = [];
+      for await (const chunk of channel.reader.readExactly(record.size)) chunks.push(chunk);
+      await channel.expectOk(`reading '${remotePath2}'`);
+      await channel.write(ZERO);
+      await channel.finish("the download");
+      return Buffer.concat(chunks, record.size);
+    } catch (err) {
+      channel.destroy();
+      if (signal?.aborted) throw abortError(signal);
+      throw isScpError(err) ? err : await channel.failure(`reading '${remotePath2}'`, err);
+    }
+  }
+  /** Splits an exact destination into the directory the sink runs in and the name to create. */
+  #split(remotePath2) {
+    const trimmed = this.#paths.trimTrailing(remotePath2);
+    const name = this.#paths.basename(trimmed);
+    if (name === "" || name === "." || name === ".." || trimmed === this.#paths.dirname(trimmed)) throw new ScpError(ErrorCode.InvalidArgument, `'${remotePath2}' must name the file or directory to create, not a root or '.'`, { path: remotePath2 });
+    return {
+      parent: this.#paths.dirname(trimmed),
+      name
+    };
+  }
+  #openSink(parent, recursive, preserve, signal) {
+    const flags = ["-t", "-d"];
+    if (recursive) flags.push("-r");
+    if (preserve) flags.push("-p");
+    return this.#open(flags, parent, signal);
+  }
+  #open(flags, path2, signal) {
+    const separator = path2.startsWith("-") ? "-- " : "";
+    const command = `${this.#scp} ${flags.join(" ")} ${separator}${quoteArg(path2, this.#paths.os)}`;
+    return ScpChannel.open(this.#ssh, command, {
+      signal,
+      handshakeTimeout: this.#handshakeTimeout
+    });
+  }
+  async #sendTimes(channel, mtime, atime, what) {
+    await channel.write(encodeTimes(mtime, atime));
+    await channel.expectOk(`setting times of ${what}`);
+  }
+  async #sendFile(channel, file, name, options, progress) {
+    throwIfAborted(options.signal);
+    if (options.preserve) await this.#sendTimes(channel, file.mtime, file.atime, `'${file.rel}'`);
+    await channel.write(encodeFile(creationMode(file.mode, options.preserve), file.size, name));
+    await channel.expectOk(`creating '${file.rel}'`);
+    progress.update(file.rel, 0, file.size);
+    let sent = 0;
+    if (file.size > 0) {
+      let stream;
+      try {
+        stream = (0, import_node_fs.createReadStream)(file.abs, {
+          start: 0,
+          end: file.size - 1
+        });
+      } catch (err) {
+        throw fromLocalError(err, "read", file.abs);
+      }
+      sent = await this.#pump(channel, stream, file.size, (n) => progress.update(file.rel, n, file.size));
+    }
+    if (sent !== file.size) throw new ScpError(ErrorCode.Local, `'${file.abs}' changed size during the upload`, { path: file.abs });
+    await channel.write(ZERO);
+    await channel.expectOk(`writing '${file.rel}'`);
+    progress.complete(file.rel, file.size);
+  }
+  async #sendDirectory(channel, dir, name, options, progress) {
+    throwIfAborted(options.signal);
+    const label = dir.rel === "" ? `'${name}'` : `'${dir.rel}'`;
+    if (options.preserve) await this.#sendTimes(channel, dir.mtime, dir.atime, label);
+    await channel.write(encodeDirectory(creationMode(dir.mode, options.preserve), name));
+    await channel.expectOk(`creating directory ${label}`);
+    progress.directories++;
+    for (const child of dir.children) if (child.kind === "dir") await this.#sendDirectory(channel, child, child.name, options, progress);
+    else await this.#sendFile(channel, child, child.name, options, progress);
+    await channel.write("E\n");
+    await channel.expectOk(`finishing directory ${label}`);
+  }
+  /**
+  * Copies at most `size` bytes from `source` into the channel, returns bytes copied. A file
+  * that grew since it was stat'ed is cut at `size`, like OpenSSH does; with `exact` a longer
+  * source is an error, because the caller declared its size.
+  */
+  async #pump(channel, source, size, onBytes, exact = false) {
+    let sent = 0;
+    try {
+      for await (const raw of source) {
+        let chunk = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
+        if (sent + chunk.length > size) {
+          if (exact) throw sizeMismatch(sent + chunk.length, size);
+          chunk = chunk.subarray(0, size - sent);
+        }
+        if (chunk.length > 0) {
+          await channel.write(chunk);
+          sent += chunk.length;
+          onBytes(sent);
+        }
+        if (sent >= size && !exact) break;
+      }
+    } catch (err) {
+      if (isScpError(err)) throw err;
+      throw fromLocalError(err, "read", void 0);
+    } finally {
+      source.destroy();
+    }
+    return sent;
+  }
+  async #receive(channel, localRoot, options, progress, result) {
+    const stack = [];
+    let pendingTimes;
+    let seenTopLevel = false;
+    await channel.write(ZERO);
+    for (; ; ) {
+      const first = await channel.nextByte();
+      if (first === null) {
+        if (!seenTopLevel || stack.length > 0) throw await channel.failure("waiting for data", "the server sent nothing");
+        return;
+      }
+      if (first === 1 || first === 2) await channel.throwStatus(first, "downloading");
+      const line = String.fromCharCode(first) + await channel.readLine("reading a record");
+      const record = channel.parseRecord(line);
+      const parent = stack[stack.length - 1];
+      const topLevel = parent === void 0;
+      if (topLevel && seenTopLevel && record.type !== "T") throw new ScpError(ErrorCode.ScpProtocol, "Server sent more than one top level entry");
+      const locate = (name) => {
+        if (parent === void 0) {
+          if (name !== ".") assertSafeReceivedName(name, "linux");
+          return {
+            rel: "",
+            local: localRoot
+          };
+        }
+        assertSafeReceivedName(name);
+        return {
+          rel: parent.rel === "" ? name : `${parent.rel}/${name}`,
+          local: (0, import_node_path.join)(parent.local, name)
+        };
+      };
+      switch (record.type) {
+        case "T":
+          pendingTimes = {
+            mtime: record.mtime,
+            atime: record.atime
+          };
+          await channel.write(ZERO);
+          break;
+        case "D": {
+          if (!options.recursive) throw new ScpError(ErrorCode.ScpProtocol, "Server sent a directory without -r");
+          const { rel, local } = locate(record.name);
+          const skip = (parent?.skip ?? false) || !topLevel && options.filter !== void 0 && !options.filter(rel, {
+            type: "directory",
+            size: 0,
+            mode: record.mode
+          });
+          if (!skip) {
+            await ensureLocalDir(local);
+            progress.directories++;
+            result.directories++;
+          }
+          stack.push({
+            local,
+            rel,
+            skip,
+            times: pendingTimes,
+            mode: record.mode
+          });
+          pendingTimes = void 0;
+          seenTopLevel = true;
+          await channel.write(ZERO);
+          break;
+        }
+        case "E": {
+          const frame = stack.pop();
+          if (!frame) throw new ScpError(ErrorCode.ScpProtocol, "Unbalanced end of directory");
+          if (!frame.skip && options.preserve) await applyLocalAttributes(frame.local, {
+            mode: frame.mode,
+            ...frame.times
+          });
+          await channel.write(ZERO);
+          break;
+        }
+        case "C": {
+          const located = locate(record.name);
+          const rel = topLevel ? record.name : located.rel;
+          const local = located.local;
+          const skip = (parent?.skip ?? false) || !topLevel && options.filter !== void 0 && !options.filter(rel, {
+            type: "file",
+            size: record.size,
+            mode: record.mode
+          });
+          const times = pendingTimes;
+          pendingTimes = void 0;
+          seenTopLevel = true;
+          await channel.write(ZERO);
+          if (skip) for await (const _ of channel.reader.readExactly(record.size)) ;
+          else {
+            if (topLevel) await ensureLocalDir((0, import_node_path.dirname)(local));
+            await this.#receiveFile(channel, local, rel, record.size, creationMode(record.mode, options.preserve), progress);
+          }
+          await channel.expectOk(`receiving '${rel}'`);
+          await channel.write(ZERO);
+          if (!skip) {
+            if (options.preserve) await applyLocalAttributes(local, {
+              mode: record.mode,
+              ...times
+            });
+            progress.complete(rel, record.size);
+            result.files++;
+            result.bytes += record.size;
+          }
+          break;
+        }
+      }
+    }
+  }
+  async #receiveFile(channel, local, rel, size, mode, progress) {
+    let handle;
+    try {
+      handle = await (0, import_promises.open)(local, "w", mode);
+    } catch (err) {
+      throw fromLocalError(err, "create", local);
+    }
+    const out = (0, import_node_fs.createWriteStream)(local, {
+      fd: handle,
+      autoClose: true
+    });
+    const failed = new Promise((_, reject) => {
+      out.once("error", (err) => reject(fromLocalError(err, "write", local)));
+    });
+    failed.catch(() => {
+    });
+    let received = 0;
+    progress.update(rel, 0, size);
+    try {
+      for await (const chunk of channel.reader.readExactly(size)) {
+        received += chunk.length;
+        if (!out.write(chunk)) await Promise.race([new Promise((r) => out.once("drain", () => r())), failed]);
+        progress.update(rel, received, size);
+      }
+      const closed = new Promise((r) => out.once("close", () => r()));
+      out.end();
+      await Promise.race([closed, failed]);
+    } catch (err) {
+      out.destroy();
+      if (isScpError(err)) throw err;
+      throw await channel.failure(`receiving '${rel}'`, err);
+    }
+  }
+};
+function call(operation, path2, fn) {
+  return new Promise((resolve, reject) => {
+    try {
+      fn((err, value) => {
+        if (err) reject(fromSftpError(err, operation, path2));
+        else resolve(value);
+      });
+    } catch (err) {
+      reject(fromSftpError(err, operation, path2));
+    }
+  });
+}
+var S_IFMT = 61440;
+var S_IFDIR = 16384;
+var S_IFREG = 32768;
+var S_IFLNK = 40960;
+function typeFromMode(mode, longname) {
+  if (typeof mode === "number" && (mode & S_IFMT) !== 0) {
+    const fmt = mode & S_IFMT;
+    if (fmt === S_IFDIR) return "directory";
+    if (fmt === S_IFREG) return "file";
+    if (fmt === S_IFLNK) return "symlink";
+    return "other";
+  }
+  switch (longname?.[0]) {
+    case "d":
+      return "directory";
+    case "-":
+      return "file";
+    case "l":
+      return "symlink";
+    default:
+      return "other";
+  }
+}
+var stat$1 = (sftp, path2) => call("stat", path2, (cb) => sftp.stat(path2, cb));
+var lstat2 = (sftp, path2) => call("lstat", path2, (cb) => sftp.lstat(path2, cb));
+var readdir$1 = (sftp, path2) => call("readdir", path2, (cb) => sftp.readdir(path2, cb));
+var mkdir$1 = (sftp, path2, attrs = {}) => call("mkdir", path2, (cb) => sftp.mkdir(path2, attrs, cb));
+var rmdir2 = (sftp, path2) => call("rmdir", path2, (cb) => sftp.rmdir(path2, cb));
+var unlink2 = (sftp, path2) => call("unlink", path2, (cb) => sftp.unlink(path2, cb));
+var rename2 = (sftp, from, to) => call("rename", from, (cb) => sftp.rename(from, to, cb));
+var realpath = (sftp, path2) => call("realpath", path2, (cb) => sftp.realpath(path2, cb));
+var setstat = (sftp, path2, attrs) => call("setstat", path2, (cb) => sftp.setstat(path2, attrs, cb));
+var readFile = (sftp, path2) => call("readFile", path2, (cb) => sftp.readFile(path2, cb));
+async function createNewFile(sftp, path2, mode) {
+  let handle;
+  try {
+    handle = await call("upload", path2, (cb) => sftp.open(path2, "wx", { mode }, cb));
+  } catch {
+    return false;
+  }
+  await call("upload", path2, (cb) => sftp.close(handle, cb));
+  return true;
+}
+var writeFile2 = (sftp, path2, data, mode) => call("writeFile", path2, (cb) => sftp.writeFile(path2, data, { mode }, cb));
+function toRemoteStats(attrs, longname) {
+  return {
+    type: typeFromMode(attrs.mode, longname),
+    size: attrs.size ?? 0,
+    mode: (attrs.mode ?? 0) & 4095,
+    uid: attrs.uid ?? 0,
+    gid: attrs.gid ?? 0,
+    atime: /* @__PURE__ */ new Date((attrs.atime ?? 0) * 1e3),
+    mtime: /* @__PURE__ */ new Date((attrs.mtime ?? 0) * 1e3)
+  };
+}
+var RemoteFs = class {
+  #sftp;
+  #paths;
+  /** @internal */
+  constructor(sftp, paths) {
+    this.#sftp = sftp;
+    this.#paths = paths;
+  }
+  /** Returns the entry type, or `false` when nothing exists at `path`. Other errors throw. */
+  async exists(path2) {
+    try {
+      return (await this.stat(path2)).type;
+    } catch (err) {
+      if (!isScpError(err, ErrorCode.NotFound)) throw err;
+    }
+    try {
+      await lstat2(this.#sftp, path2);
+      return "symlink";
+    } catch (err) {
+      if (isScpError(err, ErrorCode.NotFound)) return false;
+      throw err;
+    }
+  }
+  /** Stats `path`, following symlinks. */
+  async stat(path2) {
+    return toRemoteStats(await stat$1(this.#sftp, path2));
+  }
+  /** Stats `path` without following a final symlink. */
+  async lstat(path2) {
+    return toRemoteStats(await lstat2(this.#sftp, path2));
+  }
+  /** Lists a directory, without `.` and `..`, sorted by name. */
+  async list(path2) {
+    return (await readdir$1(this.#sftp, path2)).filter((e) => e.filename !== "." && e.filename !== "..").map((e) => ({
+      name: e.filename,
+      ...toRemoteStats(e.attrs, e.longname)
+    })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+  }
+  async mkdir(path2, options = {}) {
+    const attrs = options.mode === void 0 ? {} : { mode: options.mode };
+    if (!options.recursive) {
+      await mkdir$1(this.#sftp, path2, attrs);
+      return;
+    }
+    const target = this.#paths.trimTrailing(path2);
+    const missing = [];
+    let current = target;
+    for (; ; ) {
+      const type = await this.exists(current);
+      if (type === "directory") break;
+      if (type !== false) throw new ScpError(ErrorCode.NotADirectory, `'${current}' exists and is not a directory`, { path: current });
+      missing.push(current);
+      const parent = this.#paths.dirname(current);
+      if (parent === current || parent === "." || parent === "") break;
+      current = parent;
+    }
+    for (const dir of missing.reverse()) try {
+      await mkdir$1(this.#sftp, dir, attrs);
+    } catch (err) {
+      if (await this.exists(dir) !== "directory") throw err;
+    }
+  }
+  async rm(path2, options = {}) {
+    let st;
+    try {
+      st = await this.lstat(path2);
+    } catch (err) {
+      if (options.force && isScpError(err, ErrorCode.NotFound)) return;
+      throw err;
+    }
+    if (st.type !== "directory") {
+      await unlink2(this.#sftp, path2);
+      return;
+    }
+    if (!options.recursive) throw new ScpError(ErrorCode.IsADirectory, `'${path2}' is a directory, pass { recursive: true } to remove it`, { path: path2 });
+    for (const entry of await this.list(path2)) await this.rm(this.#paths.join(path2, entry.name), { recursive: true });
+    await rmdir2(this.#sftp, path2);
+  }
+  async rename(from, to) {
+    await rename2(this.#sftp, from, to);
+  }
+  /** Resolves `path` to an absolute path on the server, for example `.` to the home directory. */
+  async realpath(path2) {
+    return realpath(this.#sftp, path2);
+  }
+};
+function runQueue(items, limit, worker, signal) {
+  if (items.length === 0) return Promise.resolve();
+  const max = Math.max(1, Math.min(Math.floor(limit) || 1, items.length));
+  return new Promise((resolve, reject) => {
+    let next = 0;
+    let running = 0;
+    let settled = false;
+    const onAbort = () => fail(abortError(signal));
+    signal?.addEventListener("abort", onAbort, { once: true });
+    function finish(err) {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", onAbort);
+      if (err === void 0) resolve();
+      else reject(err);
+    }
+    function fail(err) {
+      finish(err);
+    }
+    function launch() {
+      if (settled) return;
+      if (signal?.aborted) {
+        fail(abortError(signal));
+        return;
+      }
+      while (running < max && next < items.length) {
+        const item = items[next++];
+        running++;
+        worker(item).then(() => {
+          running--;
+          if (next >= items.length && running === 0) finish();
+          else launch();
+        }, (err) => {
+          running--;
+          fail(err);
+        });
+      }
+    }
+    if (signal?.aborted) {
+      fail(abortError(signal));
+      return;
+    }
+    launch();
+  });
+}
+function withAbort(promise, signal) {
+  if (!signal) return promise;
+  if (signal.aborted) {
+    promise.catch(() => {
+    });
+    return Promise.reject(abortError(signal));
+  }
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      promise.catch(() => {
+      });
+      reject(abortError(signal));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then((value) => {
+      signal.removeEventListener("abort", onAbort);
+      resolve(value);
+    }, (err) => {
+      signal.removeEventListener("abort", onAbort);
+      reject(err);
+    });
+  });
+}
+var DEFAULT_CONCURRENCY = 4;
+var OWNER_WRITE = 128;
+var SftpTransport = class {
+  protocol = "sftp";
+  #sftp;
+  #paths;
+  #lost;
+  constructor(sftp, paths) {
+    this.#sftp = sftp;
+    this.#paths = paths;
+    this.#lost = new Promise((_resolve, reject) => {
+      sftp.once("close", () => reject(new ScpError(ErrorCode.ConnectionClosed, "The connection closed during the transfer")));
+    });
+    this.#lost.catch(() => void 0);
+  }
+  upload(localPath, remotePath2, options) {
+    return this.#unlessLost(this.#upload(localPath, remotePath2, options));
+  }
+  download(remotePath2, localPath, options) {
+    return this.#unlessLost(this.#download(remotePath2, localPath, options));
+  }
+  writeFile(remotePath2, data, options) {
+    return this.#unlessLost(this.#writeFile(remotePath2, data, options));
+  }
+  readFile(remotePath2, options) {
+    return this.#unlessLost(this.#readFile(remotePath2, options));
+  }
+  /**
+  * ssh2 never calls back some operations, fastPut and fastGet among them, when the connection
+  * drops in the middle: they wait for the reply to a close request sent on a dead channel.
+  */
+  #unlessLost(operation) {
+    return Promise.race([operation, this.#lost]);
+  }
+  async #upload(localPath, remotePath2, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    const st = await statLocal(localPath);
+    if (st.isFile()) {
+      const node = fileNode(localPath, basenameOf(localPath), basenameOf(localPath), st);
+      const progress2 = new ProgressTracker(options.onProgress, node.size, 1);
+      await withAbort(this.#putFile(node, remotePath2, options, progress2), signal);
+      return {
+        files: 1,
+        directories: 0,
+        bytes: node.size
+      };
+    }
+    if (!st.isDirectory()) throw new ScpError(ErrorCode.Local, `'${localPath}' is not a regular file or directory`, { path: localPath });
+    if (!options.recursive) throw new ScpError(ErrorCode.IsADirectory, `'${localPath}' is a directory, pass { recursive: true } to copy it`, { path: localPath });
+    const root = await walkLocal(localPath, options.filter, signal);
+    const sum = totals(root);
+    const progress = new ProgressTracker(options.onProgress, sum.bytes, sum.files);
+    const { dirs, files } = flatten(root);
+    const remoteRoot = this.#paths.trimTrailing(remotePath2);
+    const remoteOf = (rel) => rel === "" ? remoteRoot : this.#paths.join(remoteRoot, ...rel.split("/"));
+    for (const dir of dirs) {
+      throwIfAborted(signal);
+      await this.#ensureRemoteDir(remoteOf(dir.rel), creationMode(dir.mode, options.preserve));
+    }
+    await runQueue(files, options.concurrency ?? DEFAULT_CONCURRENCY, (file) => this.#putFile(file, remoteOf(file.rel), options, progress), signal);
+    if (options.preserve) for (const dir of [...dirs].reverse()) await setstat(this.#sftp, remoteOf(dir.rel), {
+      mode: dir.mode,
+      atime: dir.atime,
+      mtime: dir.mtime
+    });
+    return {
+      files: sum.files,
+      directories: sum.directories,
+      bytes: sum.bytes
+    };
+  }
+  async #download(remotePath2, localPath, options) {
+    const { signal } = options;
+    throwIfAborted(signal);
+    const st = await stat$1(this.#sftp, remotePath2);
+    if (st.isFile()) {
+      const file = {
+        rel: this.#paths.basename(remotePath2),
+        remote: remotePath2,
+        local: localPath,
+        size: st.size,
+        mode: st.mode & 4095,
+        atime: st.atime,
+        mtime: st.mtime
+      };
+      await ensureLocalDir((0, import_node_path.dirname)(localPath));
+      const progress2 = new ProgressTracker(options.onProgress, file.size, 1);
+      await withAbort(this.#getFile(file, options, progress2), signal);
+      return {
+        files: 1,
+        directories: 0,
+        bytes: file.size
+      };
+    }
+    if (!st.isDirectory()) throw new ScpError(ErrorCode.Remote, `'${remotePath2}' is not a regular file or directory`, { path: remotePath2 });
+    if (!options.recursive) throw new ScpError(ErrorCode.IsADirectory, `'${remotePath2}' is a directory, pass { recursive: true } to copy it`, { path: remotePath2 });
+    const dirs = [{
+      rel: "",
+      remote: this.#paths.trimTrailing(remotePath2),
+      local: localPath,
+      mode: st.mode & 4095,
+      atime: st.atime,
+      mtime: st.mtime,
+      parent: void 0
+    }];
+    const files = [];
+    for (let i = 0; i < dirs.length; i++) {
+      throwIfAborted(signal);
+      const dir = dirs[i];
+      const real = await realpath(this.#sftp, dir.remote).catch(() => dir.remote);
+      for (let ancestor = dir.parent; ancestor; ancestor = ancestor.parent) if (ancestor.real === real) throw new ScpError(ErrorCode.Remote, `Symlink loop detected at '${dir.remote}'`, { path: dir.remote });
+      dir.real = real;
+      const entries = await readdir$1(this.#sftp, dir.remote);
+      entries.sort((a, b) => a.filename < b.filename ? -1 : a.filename > b.filename ? 1 : 0);
+      for (const entry of entries) {
+        if (entry.filename === "." || entry.filename === "..") continue;
+        const found = await this.#describe(dir, entry);
+        if (!found) continue;
+        const info = {
+          type: found.kind === "dir" ? "directory" : "file",
+          size: found.kind === "dir" ? 0 : found.item.size,
+          mode: found.item.mode
+        };
+        if (options.filter && !options.filter(found.item.rel, info)) continue;
+        if (found.kind === "dir") dirs.push(found.item);
+        else files.push(found.item);
+      }
+    }
+    const bytes = files.reduce((n, f) => n + f.size, 0);
+    const progress = new ProgressTracker(options.onProgress, bytes, files.length);
+    for (const dir of dirs) await ensureLocalDir(dir.local);
+    await runQueue(files, options.concurrency ?? DEFAULT_CONCURRENCY, (file) => this.#getFile(file, options, progress), signal);
+    if (options.preserve) for (const dir of [...dirs].reverse()) await applyLocalAttributes(dir.local, dir);
+    return {
+      files: files.length,
+      directories: dirs.length,
+      bytes
+    };
+  }
+  async #writeFile(remotePath2, data, options) {
+    throwIfAborted(options.signal);
+    const mode = options.mode ?? 420;
+    if (typeof data === "string" || data instanceof Uint8Array) {
+      await withAbort(writeFile2(this.#sftp, remotePath2, Buffer.from(data), mode), options.signal);
+      return;
+    }
+    const { size } = options;
+    async function* checked(source) {
+      let seen = 0;
+      for await (const raw of source) {
+        const chunk = Buffer.isBuffer(raw) ? raw : Buffer.from(raw);
+        seen += chunk.length;
+        if (size !== void 0 && seen > size) throw sizeMismatch(seen, size);
+        yield chunk;
+      }
+      if (size !== void 0 && seen !== size) throw sizeMismatch(seen, size);
+    }
+    try {
+      await (0, import_promises2.pipeline)(data, checked, this.#sftp.createWriteStream(remotePath2, { mode }), options.signal ? { signal: options.signal } : {});
+    } catch (err) {
+      throwIfAborted(options.signal);
+      throw fromSftpError(err, "writeFile", remotePath2);
+    }
+  }
+  async #readFile(remotePath2, options) {
+    throwIfAborted(options.signal);
+    return withAbort(readFile(this.#sftp, remotePath2), options.signal);
+  }
+  async #describe(parent, entry) {
+    if (!isSafeReceivedName(entry.filename)) throw new ScpError(ErrorCode.Remote, `Server listed an unsafe file name ${JSON.stringify(entry.filename)} in '${parent.remote}'`, { path: parent.remote });
+    const remote = this.#paths.join(parent.remote, entry.filename);
+    const rel = parent.rel === "" ? entry.filename : `${parent.rel}/${entry.filename}`;
+    const local = (0, import_node_path.join)(parent.local, entry.filename);
+    let attrs = entry.attrs;
+    let type = typeFromMode(attrs.mode, entry.longname);
+    if (type === "symlink") {
+      try {
+        attrs = await stat$1(this.#sftp, remote);
+      } catch {
+        return;
+      }
+      type = typeFromMode(attrs.mode);
+    }
+    const base = {
+      rel,
+      remote,
+      local,
+      mode: (attrs.mode ?? 0) & 4095,
+      atime: attrs.atime ?? 0,
+      mtime: attrs.mtime ?? 0
+    };
+    if (type === "directory") return {
+      kind: "dir",
+      item: {
+        ...base,
+        parent
+      }
+    };
+    if (type === "file") return {
+      kind: "file",
+      item: {
+        ...base,
+        size: attrs.size ?? 0
+      }
+    };
+  }
+  async #ensureRemoteDir(remote, mode) {
+    try {
+      await mkdir$1(this.#sftp, remote, { mode });
+      return;
+    } catch (mkdirError) {
+      let st;
+      try {
+        st = await stat$1(this.#sftp, remote);
+      } catch {
+        throw mkdirError;
+      }
+      if (!st.isDirectory()) throw new ScpError(ErrorCode.NotADirectory, `'${remote}' exists and is not a directory`, { path: remote });
+    }
+  }
+  async #putFile(file, remote, options, progress) {
+    const transfer = { step: (transferred) => progress.update(file.rel, transferred, file.size) };
+    if (options.preserve) {
+      transfer.mode = file.mode;
+      return this.#fastPut(file, remote, transfer, options, progress);
+    }
+    const mode = creationMode(file.mode, false);
+    const created = await createNewFile(this.#sftp, remote, mode | OWNER_WRITE);
+    await this.#fastPut(file, remote, transfer, options, progress);
+    if (created && !(mode & OWNER_WRITE)) {
+      const { mode: current } = await stat$1(this.#sftp, remote);
+      await setstat(this.#sftp, remote, { mode: current & 3967 });
+    }
+  }
+  #fastPut(file, remote, transfer, options, progress) {
+    return new Promise((resolve, reject) => {
+      this.#sftp.fastPut(file.abs, remote, transfer, (err) => {
+        if (err) {
+          reject(fromSftpError(err, "upload", remote));
+          return;
+        }
+        const finish = () => {
+          progress.complete(file.rel, file.size);
+          resolve();
+        };
+        if (!options.preserve) {
+          finish();
+          return;
+        }
+        setstat(this.#sftp, remote, {
+          mode: file.mode,
+          atime: file.atime,
+          mtime: file.mtime
+        }).then(finish, reject);
+      });
+    });
+  }
+  async #getFile(file, options, progress) {
+    const mode = creationMode(file.mode, false);
+    let created = false;
+    if (!options.preserve) try {
+      await (await (0, import_promises.open)(file.local, "wx", mode | OWNER_WRITE)).close();
+      created = true;
+    } catch (err) {
+      if (err.code !== "EEXIST") throw fromLocalError(err, "create", file.local);
+    }
+    await this.#fastGet(file, options, progress);
+    if (created && !(mode & OWNER_WRITE)) try {
+      await (0, import_promises.chmod)(file.local, (await (0, import_promises.stat)(file.local)).mode & 3967);
+    } catch (err) {
+      throw fromLocalError(err, "set the mode of", file.local);
+    }
+  }
+  #fastGet(file, options, progress) {
+    return new Promise((resolve, reject) => {
+      this.#sftp.fastGet(file.remote, file.local, { step: (transferred) => progress.update(file.rel, transferred, file.size) }, (err) => {
+        if (err) {
+          reject(fromSftpError(err, "download", file.remote));
+          return;
+        }
+        const finish = () => {
+          progress.complete(file.rel, file.size);
+          resolve();
+        };
+        if (!options.preserve) {
+          finish();
+          return;
+        }
+        applyLocalAttributes(file.local, file).then(finish, reject);
+      });
+    });
+  }
+};
+function basenameOf(path2) {
+  const parts = path2.split(/[\\/]+/).filter(Boolean);
+  return parts[parts.length - 1] ?? path2;
+}
+var asyncDispose = Symbol.asyncDispose ?? /* @__PURE__ */ Symbol.for("Symbol.asyncDispose");
+var PROTOCOLS = /* @__PURE__ */ new Set([
+  "auto",
+  "sftp",
+  "scp"
+]);
+var ScpClient = class {
+  /** The protocol transfers use on this connection. */
+  protocol;
+  /** Remote filesystem operations. `undefined` when the connection uses SCP. */
+  fs;
+  /** The raw ssh2 SFTP session, for advanced use. `undefined` when the connection uses SCP. */
+  sftp;
+  /** The underlying ssh2 client, for advanced use such as running commands. */
+  ssh;
+  remoteOs;
+  #transport;
+  #closed = false;
+  #closeError;
+  #closedPromise;
+  /** @internal Use {@link connect}. */
+  constructor(ssh, sftp, options) {
+    this.ssh = ssh;
+    this.sftp = sftp;
+    this.remoteOs = options.remoteOs;
+    const paths = remotePath(options.remoteOs);
+    if (sftp) {
+      this.protocol = "sftp";
+      this.fs = new RemoteFs(sftp, paths);
+      this.#transport = new SftpTransport(sftp, paths);
+    } else {
+      this.protocol = "scp";
+      this.fs = void 0;
+      this.#transport = new ScpTransport(ssh, {
+        scpCommand: options.scpCommand,
+        paths,
+        handshakeTimeout: options.handshakeTimeout
+      });
+    }
+    ssh.on("error", (err) => {
+      this.#closeError = err;
+    });
+    this.#closedPromise = new Promise((resolve) => {
+      ssh.once("close", () => {
+        this.#closed = true;
+        resolve();
+      });
+    });
+  }
+  /** `true` once the connection is closed, by {@link close} or by the network. */
+  get closed() {
+    return this.#closed;
+  }
+  /**
+  * Copies a local file, or a directory with `recursive: true`, to `remotePath`. The destination
+  * is exact: `upload('dist', '/www')` makes `/www` mirror `dist`. The remote parent directory
+  * must exist.
+  */
+  upload(localPath, remotePath2, options = {}) {
+    return this.#run(() => this.#transport.upload(localPath, remotePath2, options));
+  }
+  /**
+  * Copies a remote file, or a directory with `recursive: true`, to `localPath`. The destination
+  * is exact and local parent directories are created.
+  */
+  download(remotePath2, localPath, options = {}) {
+    return this.#run(() => this.#transport.download(remotePath2, localPath, options));
+  }
+  /** Writes a string, bytes or a stream to a remote file. Works over SFTP and SCP. */
+  writeFile(remotePath2, data, options = {}) {
+    return this.#run(() => this.#transport.writeFile(remotePath2, data, options));
+  }
+  /** Reads a whole remote file into memory. Works over SFTP and SCP. */
+  readFile(remotePath2, options = {}) {
+    return this.#run(() => this.#transport.readFile(remotePath2, options));
+  }
+  /** Closes the connection. Safe to call more than once. */
+  async close() {
+    if (!this.#closed) {
+      this.sftp?.end();
+      this.ssh.end();
+    }
+    await this.#closedPromise;
+  }
+  async [asyncDispose]() {
+    await this.close();
+  }
+  async #run(operation) {
+    if (this.#closed) throw new ScpError(ErrorCode.NotConnected, `The connection is closed${this.#closeError ? `: ${this.#closeError.message}` : ""}`, { cause: this.#closeError });
+    return operation();
+  }
+};
+function openSftp(ssh, timeoutMs, signal) {
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const settle = () => {
+      if (done) return false;
+      done = true;
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
+      return true;
+    };
+    const onAbort = () => {
+      if (settle()) reject(abortError(signal));
+    };
+    const timer = setTimeout(() => {
+      if (settle()) reject(/* @__PURE__ */ new Error(`no SFTP response within ${timeoutMs} ms`));
+    }, timeoutMs);
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
+    try {
+      ssh.sftp((err, sftp) => {
+        if (!settle()) {
+          sftp?.end();
+          return;
+        }
+        if (err) reject(err);
+        else resolve(sftp);
+      });
+    } catch (err) {
+      if (settle()) reject(err);
+    }
+  });
+}
+function waitForReady(ssh, config, signal) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      ssh.off("ready", onReady);
+      ssh.off("error", onError);
+      ssh.off("close", onClose);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onReady = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = (err) => {
+      cleanup();
+      ssh.end();
+      reject(fromConnectError(err));
+    };
+    const onClose = () => {
+      cleanup();
+      reject(new ScpError(ErrorCode.ConnectionClosed, "The connection closed before it was ready"));
+    };
+    const onAbort = () => {
+      cleanup();
+      ssh.end();
+      reject(abortError(signal));
+    };
+    ssh.on("ready", onReady);
+    ssh.on("error", onError);
+    ssh.on("close", onClose);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    try {
+      ssh.connect(config);
+    } catch (err) {
+      cleanup();
+      reject(new ScpError(ErrorCode.InvalidArgument, `Invalid connection options: ${err.message}`, { cause: err }));
+    }
+  });
+}
+async function connect(options) {
+  const { protocol = "auto", remoteOs = "posix", scpCommand = "scp", signal, beforeConnect, noDelay = true, ...config } = options;
+  if (!PROTOCOLS.has(protocol)) throw new ScpError(ErrorCode.InvalidArgument, `protocol must be 'auto', 'sftp' or 'scp', got ${JSON.stringify(protocol)}`);
+  if (remoteOs !== "posix" && remoteOs !== "win32") throw new ScpError(ErrorCode.InvalidArgument, `remoteOs must be 'posix' or 'win32', got ${JSON.stringify(remoteOs)}`);
+  throwIfAborted(signal);
+  const ssh = new import_ssh2.Client();
+  let lateError;
+  const guard = (err) => {
+    lateError = err;
+  };
+  ssh.on("error", guard);
+  let closedEarly = false;
+  ssh.once("close", () => {
+    closedEarly = true;
+  });
+  beforeConnect?.(ssh);
+  await waitForReady(ssh, config, signal);
+  if (noDelay) ssh.setNoDelay(true);
+  let sftp;
+  if (protocol !== "scp") try {
+    sftp = await openSftp(ssh, config.readyTimeout ?? 2e4, signal);
+  } catch (err) {
+    if (signal?.aborted) {
+      ssh.end();
+      throw abortError(signal);
+    }
+    if (protocol === "sftp") {
+      ssh.end();
+      throw new ScpError(ErrorCode.SftpUnavailable, `The server does not offer SFTP: ${err.message}. Use protocol 'scp' or 'auto'.`, { cause: err });
+    }
+  }
+  if (signal?.aborted) {
+    ssh.end();
+    throw abortError(signal);
+  }
+  if (closedEarly) throw lateError ? fromConnectError(lateError) : new ScpError(ErrorCode.ConnectionClosed, "The connection closed during setup");
+  const client = new ScpClient(ssh, sftp, {
+    remoteOs,
+    scpCommand,
+    handshakeTimeout: config.readyTimeout ?? 2e4
+  });
+  ssh.off("error", guard);
+  if (lateError) {
+    ssh.end();
+    throw fromConnectError(lateError);
+  }
+  return client;
+}
+
+// index.ts
 var import_os3 = __toESM(require("os"));
 async function run() {
   let client = null;
@@ -41212,9 +41179,9 @@ async function run() {
     const files = getInput("files");
     let uploads = files.includes("\n") ? files.split("\n") : files.split(",");
     uploads = uploads.map((s) => s.trim()).filter((s) => s !== "").map((s) => s.includes(":") ? s.split(":").slice(1).join(":") : s);
-    client = await (0, import_node_scp.Client)({
+    client = await connect({
       host: getInput("host"),
-      port: getInput("port"),
+      port: parseInt(getInput("port")),
       username: getInput("username"),
       privateKey: Buffer.from(getInput("privateKey"), "utf-8")
     });
@@ -41223,18 +41190,21 @@ async function run() {
     let current = "";
     for (const part of parts) {
       current += part + "/";
-      if (!await client.exists(current)) {
-        await client.mkdir(current);
+      if (!client.fs) {
+        throw new Error("Remote filesystem operations are not available on this connection");
+      }
+      if (!await client.fs.exists(current)) {
+        await client.fs.mkdir(current);
       }
     }
     console.log(`Created directory ${directory}`);
     for (const file of uploads) {
       console.log(`Uploading ${file}`);
-      await client.uploadFile(file, path.join(directory, path.basename(file)));
+      await client.upload(file, path.join(directory, path.basename(file)));
       console.log(`Uploaded ${file}`);
     }
     console.log(`Uploading metadata`);
-    await client.uploadFile(metadataFile, path.join(directory, path.basename(metadataFile)));
+    await client.upload(metadataFile, path.join(directory, path.basename(metadataFile)));
     console.log(`Uploaded metadata`);
     client.close();
     console.log(`Release uploaded`);

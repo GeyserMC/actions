@@ -6,13 +6,6 @@ undici/lib/web/fetch/body.js:
 undici/lib/web/websocket/frame.js:
   /*! ws. MIT License. Einar Otto Stangvik <einaros@gmail.com> */
 
-content-type/dist/index.js:
-  /*!
-   * content-type
-   * Copyright(c) 2015 Douglas Christopher Wilson
-   * MIT Licensed
-   */
-
 mime-db/index.js:
   /*!
    * mime-db
@@ -32,12 +25,32 @@ mime-types/index.js:
 axios/dist/node/axios.cjs:
   /*! Axios v1.18.1 Copyright (c) 2026 Matt Zabriskie and contributors */
 
+content-type/dist/index.js:
+  /*!
+   * content-type
+   * Copyright(c) 2015 Douglas Christopher Wilson
+   * MIT Licensed
+   */
+
 @octokit/request-error/dist-src/index.js:
   /* v8 ignore else -- @preserve -- Bug with vitest coverage where it sees an else branch that doesn't exist */
 
 @octokit/request/dist-bundle/index.js:
   /* v8 ignore next -- @preserve */
   /* v8 ignore else -- @preserve */
+
+@octokit/oauth-methods/dist-bundle/index.js:
+  /* v8 ignore next: we always pass a custom request in tests -- @preserve */
+
+@octokit/auth-oauth-device/dist-bundle/index.js:
+  /* v8 ignore next 2 -- @preserve */
+
+@octokit/auth-oauth-user/dist-bundle/index.js:
+  /* v8 ignore if -- @preserve */
+  /* v8 ignore next -- @preserve */
+
+@octokit/auth-oauth-app/dist-bundle/index.js:
+  /* v8 ignore next -- @preserve */
 
 toad-cache/dist/toad-cache.mjs:
   /**
@@ -47,3 +60,12 @@ toad-cache/dist/toad-cache.mjs:
    * @license MIT
    * @version 3.7.0
    */
+
+@octokit/auth-app/dist-node/index.js:
+  /* v8 ignore next - permissions are optional per OpenAPI spec, but we think that is incorrect -- @preserve */
+  /* v8 ignore next - repositorySelection are optional per OpenAPI spec, but we think that is incorrect -- @preserve */
+  /* v8 ignore start - due to skipped tests, see https://github.com/octokit/auth-app.js/pull/580 -- @preserve */
+  /* v8 ignore end -- @preserve */
+
+@octokit/graphql/dist-bundle/index.js:
+  /* v8 ignore if -- @preserve */

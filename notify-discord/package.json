@@ -18,7 +18,7 @@
     "dependencies": {
         "@actions/core": "3.0.1",
         "@vermaysha/discord-webhook": "1.4.0",
-        "tslib": "2.6.2"
+        "tslib": "2.8.1"
     },
     "devDependencies": {
         "@geysermc/actions-release": "1.0.0"

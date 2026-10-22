@@ -1,0 +1,53 @@
+export interface Inputs {
+    readonly files: Inputs.File[];
+    readonly changes: Inputs.Change[];
+    readonly tag: Inputs.Tag;
+    readonly additionalTags: string[];
+    readonly release: Inputs.Release;
+    readonly success: boolean;
+}
+export declare namespace Inputs {
+    interface Tag {
+        readonly base: string;
+        readonly prefix: string;
+        readonly increment: boolean;
+        readonly separator: string;
+        readonly formatted: string;
+    }
+    interface File {
+        readonly label: string;
+        readonly path: string;
+    }
+    interface Change {
+        readonly commit: string;
+        readonly summary: string;
+        readonly message: string;
+        readonly timestamp: string;
+        readonly author: string;
+        readonly coauthors: string[];
+    }
+    interface Release {
+        readonly enabled: boolean;
+        readonly name: string;
+        readonly body: string;
+        readonly prerelease: boolean;
+        readonly draft: boolean;
+        readonly generate_release_notes: boolean;
+        readonly discussion_category_name: string | undefined;
+        readonly make_latest: "true" | "false" | "legacy" | undefined;
+        readonly info: boolean;
+        readonly hook: string | undefined;
+        readonly hookIncludeAssets: boolean;
+        readonly hookIncludeThumbnail: boolean;
+        readonly metadata: boolean;
+        readonly metadata_name: string;
+        readonly update_release_data: boolean;
+        readonly project: string;
+        readonly version: string;
+    }
+}
+export interface PreviousRelease {
+    commit?: string;
+    baseTag?: string;
+}
+//# sourceMappingURL=inputs.d.ts.map

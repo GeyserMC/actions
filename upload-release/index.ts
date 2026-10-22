@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Client, ScpClient } from 'node-scp';
+import { connect, ScpClient } from 'node-scp';
 import { Metadata } from '@geysermc/actions-release';
 import os from 'os';
 
@@ -26,9 +26,9 @@ async function run(): Promise<void> {
             .map(s => s.trim()).filter(s => s !== '')
             .map(s => s.includes(':') ? s.split(':').slice(1).join(':') : s);
 
-        client = await Client({
+        client = await connect({
             host: core.getInput('host'),
-            port: core.getInput('port'),
+            port: parseInt(core.getInput('port')),
             username: core.getInput('username'),
             privateKey: Buffer.from(core.getInput('privateKey'), 'utf-8')
         });
@@ -38,20 +38,23 @@ async function run(): Promise<void> {
         let current = '';
         for (const part of parts) {
             current += part + '/';
-            if (!(await client.exists(current))) {
-                await client.mkdir(current);
+            if (!(client.fs)) {
+                throw new Error('Remote filesystem operations are not available on this connection');
+            }
+            if (!(await client.fs.exists(current))) {
+                await client.fs.mkdir(current);
             }
         }
         console.log(`Created directory ${directory}`);
 
         for (const file of uploads) {
             console.log(`Uploading ${file}`);
-            await client.uploadFile(file, path.join(directory, path.basename(file)));
+            await client.upload(file, path.join(directory, path.basename(file)));
             console.log(`Uploaded ${file}`);
         }
 
         console.log(`Uploading metadata`);
-        await client.uploadFile(metadataFile, path.join(directory, path.basename(metadataFile)));
+        await client.upload(metadataFile, path.join(directory, path.basename(metadataFile)));
         console.log(`Uploaded metadata`);
         client.close();
 
